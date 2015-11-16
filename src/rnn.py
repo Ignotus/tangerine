@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+from collections import defaultdict
 import numpy as np
+from nltk.tokenize import RegexpTokenizer
 
 
 def sigmoid(x):
@@ -10,6 +12,9 @@ def softmax(x):
     exp_x = np.exp(x)
     return exp_x / np.sum(exp_x)
 
+
+# Iterations
+niter = 10
 
 # Input size == Vocabulary size
 N = 100
@@ -32,9 +37,17 @@ def predict(x):
     return softmax(V.dot(s_t))
 
 
-def train(X, D, lr=0.1):
-    global U, W, V, s
-    for x, d in zip(X, D):
+def train(Xi, nwords, lr=0.1):
+    global U, W, V, s, N
+    N = nwords
+    U = np.random.randn(H, N)
+    V = np.random.randn(N, H)
+
+    for xi, di in zip(Xi, Xi[1:]):
+        x = np.zeros(N)
+        x[xi] = 1
+        d = np.zeros(N)
+        d[di] = 1
         s[1:] = s[:-1]
         s[0] = sigmoid(U.dot(x) + W.dot(s[1]))
 
@@ -54,11 +67,23 @@ def train(X, D, lr=0.1):
             W += lr * s[i + 1].dot(err_hidden.T)
 
 
-# Input vector
-X = np.zeros((2, N))
-X[0][6] = 1
-X[1][3] = 1
+if __name__ == '__main__':
+    tokenizer = RegexpTokenizer(r'\w+')
+    content = open('test.txt').read()
+    sentences = list(filter(None,
+                            [[token.lower()
+                              for token in tokenizer.tokenize(sentence)]
+                             for sentence in content.split('.')]))
 
-D = X
+    word_indexes = defaultdict(lambda: len(word_indexes))
+    for sentence in sentences:
+        for token in sentence:
+            word_indexes[token]
+    word_indexes['$']
 
-train(X, D)
+    indexes = [[word_indexes[token] for token in sentence] + [word_indexes['$']]
+               for sentence in sentences]
+
+    for i in range(niter):
+        for sentence_indexes in indexes:
+            train(sentence_indexes, len(word_indexes))
