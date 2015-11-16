@@ -23,15 +23,42 @@ W = np.random.randn(H, H)
 V = np.random.randn(N, H)
 
 # Initial state of the hidden layer
-s = np.zeros(H)
+ntime = 3
+s = [np.zeros(H) for i in range(ntime)]
 
 
-def predict(w):
-    return softmax(V.dot(sigmoid(U.dot(w) + W.dot(s))))
+def predict(x):
+    s_t = sigmoid(U.dot(x) + W.dot(s))
+    return softmax(V.dot(s_t))
+
+
+def train(X, D, lr=0.1):
+    global U, W, V, s
+    for x, d in zip(X, D):
+        s[1:] = s[:-1]
+        s[0] = sigmoid(U.dot(x) + W.dot(s[1]))
+
+        y = softmax(V.dot(s[0]))
+        err_out = d - y
+
+        V += lr * err_out[np.newaxis].T.dot(s[0][np.newaxis])
+
+        err_hidden = err_out[np.newaxis].dot(V).dot(s[0]) * (1 - s[0])
+
+        U += lr * W.dot(err_hidden[np.newaxis].T)
+
+        W += lr * s[1].dot(err_hidden.T)
+
+        for i in range(1, ntime - 1):
+            err_hidden = err_hidden[np.newaxis].dot(W).dot(s[i]) * (1 - s[i])
+            W += lr * s[i + 1].dot(err_hidden.T)
 
 
 # Input vector
-w = np.zeros(N)
-w[6] = 1
+X = np.zeros((2, N))
+X[0][6] = 1
+X[1][3] = 1
 
-predict(w)
+D = X
+
+train(X, D)
