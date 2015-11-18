@@ -1,89 +1,60 @@
 #!/usr/bin/env python3
-from collections import defaultdict
 import numpy as np
-from nltk.tokenize import RegexpTokenizer
+from collections import defaultdict
+from scipy.special import expit
 
-
+# http://stackoverflow.com/questions/3985619/how-to-calculate-a-logistic-sigmoid-function-in-python
 def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
+    return expit(x)
 
 def softmax(x):
     exp_x = np.exp(x)
     return exp_x / np.sum(exp_x)
 
+class RNN:
+    def __init__(self, word_dim, hidden_layer_size=20):
+        # Initialize model parameters
+        # Word dimensions is the size of our vocubulary
+        self.N = word_dim
+        self.H = hidden_layer_size
 
-# Iterations
-niter = 10
+        # Randomly initialize weights
+        self.U = np.random.randn(self.H, self.N)
+        self.W = np.random.randn(self.H, self.H)
+        self.V = np.random.randn(self.N, self.H)
 
-# Input size == Vocabulary size
-N = 100
+        # Initial state of the hidden layer
+        self.ntime = 3
+        self.s = [np.zeros(self.H) for i in range(self.ntime)]
 
-# Hidden layer size
-H = 20
+    def predict(self, x):
+        s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s))
+        return softmax(self.V.dot(s_t))
 
-# Weights
-U = np.random.randn(H, N)
-W = np.random.randn(H, H)
-V = np.random.randn(N, H)
+    def train(self, Xi, lr=0.1):
+        self.U = np.random.randn(self.H, self.N)
+        self.V = np.random.randn(self.N, self.H)
 
-# Initial state of the hidden layer
-ntime = 3
-s = [np.zeros(H) for i in range(ntime)]
+        for xi, di in zip(Xi, Xi[1:]):
+            x = np.zeros(self.N)
+            x[xi] = 1
+            d = np.zeros(self.N)
+            d[di] = 1
+            self.s[1:] = self.s[:-1]
+            self.s[0] = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
 
+            y = softmax(self.V.dot(self.s[0]))
+            err_out = d - y
 
-def predict(x):
-    s_t = sigmoid(U.dot(x) + W.dot(s))
-    return softmax(V.dot(s_t))
+            self.V += lr * err_out[np.newaxis].T.dot(self.s[0][np.newaxis])
 
+            err_hidden = err_out[np.newaxis].dot(self.V).dot(self.s[0]) * (1 - self.s[0])
 
-def train(Xi, nwords, lr=0.1):
-    global U, W, V, s, N
-    N = nwords
-    U = np.random.randn(H, N)
-    V = np.random.randn(N, H)
+            self.U += lr * self.W.dot(err_hidden[np.newaxis].T)
+            self.W += lr * self.s[1].dot(err_hidden.T)
 
-    for xi, di in zip(Xi, Xi[1:]):
-        x = np.zeros(N)
-        x[xi] = 1
-        d = np.zeros(N)
-        d[di] = 1
-        s[1:] = s[:-1]
-        s[0] = sigmoid(U.dot(x) + W.dot(s[1]))
+            for i in range(1, self.ntime - 1):
+                err_hidden = err_hidden[np.newaxis].dot(self.W).dot(self.s[i]) * (1 - self.s[i])
+                self.W += lr * self.s[i + 1].dot(err_hidden.T)
 
-        y = softmax(V.dot(s[0]))
-        err_out = d - y
-
-        V += lr * err_out[np.newaxis].T.dot(s[0][np.newaxis])
-
-        err_hidden = err_out[np.newaxis].dot(V).dot(s[0]) * (1 - s[0])
-
-        U += lr * W.dot(err_hidden[np.newaxis].T)
-
-        W += lr * s[1].dot(err_hidden.T)
-
-        for i in range(1, ntime - 1):
-            err_hidden = err_hidden[np.newaxis].dot(W).dot(s[i]) * (1 - s[i])
-            W += lr * s[i + 1].dot(err_hidden.T)
-
-
-if __name__ == '__main__':
-    tokenizer = RegexpTokenizer(r'\w+')
-    content = open('test.txt').read()
-    sentences = list(filter(None,
-                            [[token.lower()
-                              for token in tokenizer.tokenize(sentence)]
-                             for sentence in content.split('.')]))
-
-    word_indexes = defaultdict(lambda: len(word_indexes))
-    for sentence in sentences:
-        for token in sentence:
-            word_indexes[token]
-    word_indexes['$']
-
-    indexes = [[word_indexes[token] for token in sentence] + [word_indexes['$']]
-               for sentence in sentences]
-
-    for i in range(niter):
-        for sentence_indexes in indexes:
-            train(sentence_indexes, len(word_indexes))
+                

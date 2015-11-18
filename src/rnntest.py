@@ -4,6 +4,10 @@ from rnn import RNN
 from utils import read_vocabulary, tokenize_files
 from timeit import default_timer as timer
 
+# Use preprocessed data from: 
+# http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz
+# Contains one sentence tokenized per newline
+
 MAX_VOCAB_SIZE = 5000
 MAX_SENTENCES = 1000
 NUM_ITER = 5

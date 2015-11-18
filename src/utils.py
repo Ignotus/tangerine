@@ -10,6 +10,9 @@ IGNORED_TOKEN = "IGNORED_TOKEN"
 # Tokenizes the files in the given folder
 # - Converts to lower case, removes punctuation
 # - Yields sentences split up in words, represented by vocabulary index
+# Files in data folder should be tokenized by sentence (one sentence per newline),
+# Like in the 1B-words benchmark
+
 def tokenize_files(vocab_dict, datafolder):
     filenames = glob.glob(datafolder + "/*")
     for filename in filenames:
