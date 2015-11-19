@@ -32,9 +32,6 @@ class RNN:
         return softmax(self.V.dot(s_t))
 
     def train(self, Xi, lr=0.1):
-        self.U = np.random.randn(self.H, self.N)
-        self.V = np.random.randn(self.N, self.H)
-
         for xi, di in zip(Xi, Xi[1:]):
             x = np.zeros(self.N)
             x[xi] = 1
