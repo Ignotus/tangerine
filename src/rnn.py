@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import numpy as np
-from collections import defaultdict
 from rnn_routine import *
 
 
@@ -47,4 +46,4 @@ class RNN:
                 err_hidden = err_hidden[np.newaxis].dot(self.W).dot(self.s[i]) * (1 - self.s[i])
                 self.W += lr * self.s[i + 1].dot(err_hidden.T)
 
-                
+
