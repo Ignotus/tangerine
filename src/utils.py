@@ -37,9 +37,12 @@ def read_vocabulary(filename, maxsize):
 
 # Yield a list of lists of indices corresponding
 # to context windows surrounding each word in the sentence
-def create_context_window(sentence, windowsize):
-    # todo
-    pass
+def create_context_windows(sentence, window_size):
+    for i in range(0, len(sentence)):
+        context_window = []
 
+        for j in range(-(window_size/2), (window_size/2)+1):
+            if j != 0 and i+j >= 0 and i+j < len(sentence):
+                context_window.append(sentence[i+j])
 
-
+        yield (sentence[i], context_window)
