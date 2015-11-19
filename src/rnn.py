@@ -39,7 +39,7 @@ class RNN:
 
             err_hidden = err_out[np.newaxis].dot(self.V).dot(self.s[0]) * (1 - self.s[0])
 
-            self.U += lr * self.W.dot(err_hidden[np.newaxis].T)
+            self.U += lr * err_hidden[np.newaxis].T.dot(x[np.newaxis])
             self.W += lr * self.s[1].dot(err_hidden.T)
 
             for i in range(1, self.ntime - 1):
