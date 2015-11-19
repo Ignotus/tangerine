@@ -21,7 +21,7 @@ def tokenize_files(vocab_dict, datafolder):
                 # Use nltk tokenizer to split the sentence into words
                 words = word_tokenize(sentence.lower())
                 # Filter punctuation
-                words = [word for word in words if word.isalpha()]
+                words = [word for word in words if word.isalnum()]
                 # Replace words that are not in vocabulary with IGNORED token
                 words = [word if word in vocab_dict else IGNORED_TOKEN for word in words]
                 if words:
