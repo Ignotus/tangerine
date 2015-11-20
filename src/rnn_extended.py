@@ -14,7 +14,7 @@ class RNNExtended:
         self.U = np.random.randn(self.H, self.N)
         self.W = np.random.randn(self.H, self.H)
         self.V = np.random.randn(self.class_size, self.H)
-        nclass = np.floor(self.N / self.class_size)
+        nclass = np.ceil(self.N / self.class_size)
         self.X = np.random.randn(nclass, self.H)
 
         # Initial state of the hidden layer
