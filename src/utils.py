@@ -2,6 +2,7 @@
 import numpy as np
 import glob
 from collections import defaultdict
+from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import itertools
 
@@ -15,13 +16,15 @@ IGNORED_TOKEN = "IGNORED_TOKEN"
 
 def tokenize_files(vocab_dict, datafolder):
     filenames = glob.glob(datafolder + "/*")
+    stop = stopwords.words('english')
     for filename in filenames:
         with open(filename) as f:
             for sentence in f:
                 # Use nltk tokenizer to split the sentence into words
                 words = word_tokenize(sentence.lower())
-                # Filter punctuation
-                words = [word for word in words if word.isalnum()]
+                # Filter punctuation & stop words
+                # TODO: Make stop words removal an optional parameter
+                words = [word for word in words if word.isalnum() and word not in stop]
                 # Replace words that are not in vocabulary with IGNORED token
                 words = [word if word in vocab_dict else IGNORED_TOKEN for word in words]
                 if words:
