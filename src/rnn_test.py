@@ -10,6 +10,7 @@ from timeit import default_timer as timer
 
 MAX_VOCAB_SIZE = 5000
 MAX_SENTENCES = 1000
+MAX_LIKELIHOOD_SENTENCES = 1000
 NUM_ITER = 5
 HIDDEN_LAYER_SIZE = 20
 
@@ -20,14 +21,17 @@ def testRNN(vocabulary_file, training_dir):
     start = timer()
     rnn = RNN(len(words), HIDDEN_LAYER_SIZE)
     num_words = 0
+    sentences = tokenize_files(dictionary, training_dir)
+    lik_sentences = [sentence for sentence in itertools.islice(sentences, MAX_LIKELIHOOD_SENTENCES)]
     for i in range(NUM_ITER):
-        sentences = tokenize_files(dictionary, training_dir)    
+        sentences = tokenize_files(dictionary, training_dir)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             # Todo, create context window for each sentence?
             rnn.train(sentence)
             num_words += len(sentence)
 
         print("Iteration " + str(i + 1) + "/" + str(NUM_ITER) + " finished (" + str(num_words) + " words)")
+        print("Log-likelihood: ", rnn.log_likelihood(lik_sentences))
         num_words = 0
 
     print("- Took %.2f sec" % (timer() - start))

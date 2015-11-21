@@ -22,8 +22,8 @@ class RNNExtended:
         self.s = [np.zeros(self.H) for i in range(self.ntime)]
 
     def predict(self, x):
-        s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s))
-        return softmax(self.V.dot(s_t))
+        s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
+        return softmax(self.V.dot(self.s[0]))
 
     def train(self, Xi, lr=0.1):
         for xi, di in zip(Xi, Xi[1:]):
