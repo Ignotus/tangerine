@@ -36,9 +36,9 @@ class CBOW:
             h = (1 / self.C) * np.sum(self.V[cw[1],], axis=0)
 
             classifiers = zip(self.vocab[t].path, self.vocab[t].code)
-            for target, label in classifiers:
+            for target, code in classifiers:
                 p = sigmoid(self.W[:, target].T.dot(h))
-                g = p - label
+                g = p - code
                 EH += g * self.W[:, target]  # will be used to update input->hidden layer
                 self.W[:, target] -= alpha * g * h  # 1. updating hidden -> output layer
 
@@ -115,20 +115,6 @@ class CBOW:
         return LL
 
 
-    def getEH(self, t, h):
-        res = 0
-        for j in range(0, self.v):
-            res += self.getE(j, t, h) * (self.W[:, j])
-        return res
-
-
-    # h: hidden neuron values
-    def getE(self, j, t, h):
-        if (t == j):
-            r = self.y(j, h) - 1
-        else:
-            r = self.y(j, h)
-        return r
 
     # hierarchical softmax
     def hsm(self, j, h):
@@ -155,18 +141,39 @@ def sigmoid(z):
 
 
 
-# normal softmax
-def y(self, j, h):
-    if (self.Cache_Z == None):
-        Z = 0
-        for i in range(0, self.v):
-            Z += np.exp(self.W[:, i].T.dot(h))
-        if (Z == 0): return 0
-        self.Cache_Z = Z
-    return np.exp(self.W[:, j].T.dot(h)) / self.Cache_Z
 
 
 
+
+
+
+# OUTDATED:
+
+
+    # def getEH(self, t, h):
+    #     res = 0
+    #     for j in range(0, self.v):
+    #         res += self.getE(j, t, h) * (self.W[:, j])
+    #     return res
+    #
+    #
+    # # h: hidden neuron values
+    # def getE(self, j, t, h):
+    #     if (t == j):
+    #         r = self.y(j, h) - 1
+    #     else:
+    #         r = self.y(j, h)
+    #     return r
+
+#     # normal softmax
+# def y(self, j, h):
+#     if (self.Cache_Z == None):
+#         Z = 0
+#         for i in range(0, self.v):
+#             Z += np.exp(self.W[:, i].T.dot(h))
+#         if (Z == 0): return 0
+#         self.Cache_Z = Z
+#     return np.exp(self.W[:, j].T.dot(h)) / self.Cache_Z
 
 
 
