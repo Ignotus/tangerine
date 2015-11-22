@@ -8,3 +8,9 @@ def sigmoid(x):
 def softmax(x):
     exp_x = np.exp(x)
     return exp_x / np.sum(exp_x)
+
+def clip_grad(grad, threshold):
+    abs_grad = np.sqrt(np.sum(grad * grad))
+    if abs_grad > threshold:
+        grad *= threshold / abs_grad
+    return grad
