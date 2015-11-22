@@ -19,6 +19,9 @@ class RNN:
         self.ntime = 3
         self.s = [np.zeros(self.H) for i in range(self.ntime)]
 
+    def word_representation(self, word_idx):
+        return self.V[word_idx, :]
+
     def predict(self, x):
         s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
         return softmax(self.V.dot(self.s[0]))
