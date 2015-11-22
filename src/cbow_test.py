@@ -11,18 +11,18 @@ import profile
 # vocab_file = '../data/cbow/vocab/small.txt'
 
 
-train_dir = '../data/training/'
-vocab_file = '../data/vocabulary/20k.txt'
+train_dir = '../data/training/small_1M'
+vocab_file = '../data/vocabulary/news.txt'
 
-alpha = 0.25
+alpha = 0.15 # learning rate
 
-C = 2
-n = 5
+C = 5 # window size
+n = 200 # the number of components in the hident layer
 
-EPOCHS = 5
-MAX_VOCAB_SIZE = 20000
-MAX_SENTENCES = 1000
-MAX_LL_SENTENCES=1000
+EPOCHS = 1
+MAX_VOCAB_SIZE = 200000000000 # use all
+MAX_SENTENCES = 500000000000 # use all
+MAX_LL_SENTENCES=5000
 
 voc = constructVocabulary(train_dir)
 writeVocabulary(voc, vocab_file)
@@ -33,13 +33,13 @@ print("Reading sentences and training CBOW ...")
 
 start = timer()
 myCbow = CBOW(C, n, index_to_word)
+
+# for performance plots
 ERROR = []
 EP = []
-j = 0
-
 def run():
         num_words = 0
-        for i in range(EPOCHS):
+        for i in range(0,EPOCHS):
             sentences1 = tokenize_files(word_to_index, train_dir)
             sentences2 = tokenize_files(word_to_index, train_dir) # for LL
 
