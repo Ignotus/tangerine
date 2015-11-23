@@ -11,9 +11,9 @@ IGNORED_TOKEN = "IgnoredToken"
 SUBSAMPLING_THRESHOLD = 10e-5
 STOPWORDS = set(stopwords.words('english'))
 
+ # Sub-sampling of frequent words: can improve both accuracy and speed for large data sets 
+# Source: "Distributed Representations of Words and Phrases and their Compositionality"
 def remove_with_prob(word, vocab_dict, total_wordcount):
-    print(word)
-    print(total_wordcount)
     freq = float(vocab_dict[word][1]) / total_wordcount
     removal_prob = 1.0 - np.sqrt(SUBSAMPLING_THRESHOLD / freq)
     return np.random.random_sample() < removal_prob
@@ -30,8 +30,6 @@ def allow_word(word, vocab_dict, total_wordcount, remove_stopwords=False, subsam
     if not word in vocab_dict:
         return True # Will be replaced with IGNORED_TOKEN
 
-    # Sub-sampling of frequent words: can improve both accuracy and speed for large data sets 
-    # Source: "Distributed Representations of Words and Phrases and their Compositionality"
     if subsample_frequent:
         allow = remove_with_prob(word, vocab_dict, total_wordcount)
     if not allow:
