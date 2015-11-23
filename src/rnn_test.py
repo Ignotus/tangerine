@@ -8,7 +8,7 @@ from timeit import default_timer as timer
 # http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz
 # Contains one sentence tokenized per newline
 
-MAX_VOCAB_SIZE = 5000
+MAX_VOCAB_SIZE = 10000
 MAX_SENTENCES = 100
 MAX_LIKELIHOOD_SENTENCES = 100
 NUM_ITER = 5
@@ -37,5 +37,5 @@ def testRNN(vocabulary_file, training_dir):
     print("- Took %.2f sec" % (timer() - start))
 
 if __name__ == '__main__':
-    testRNN("../data/vocabulary/20k.txt", "../data/training")
+    testRNN("../data/vocabulary/small.txt", "../data/training/small_1M")
    

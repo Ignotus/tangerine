@@ -30,5 +30,5 @@ def testRNN(vocabulary_file, training_dir):
     print("- Took %.2f sec" % (timer() - start))
 
 if __name__ == '__main__':
-    testRNN("../data/vocabulary/20k.txt", "../data/training")
+    testRNN("../data/vocabulary/20k.txt", "../data/training/small_1M")
    
