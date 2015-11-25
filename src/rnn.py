@@ -25,7 +25,7 @@ class RNN:
 
     def predict(self, x):
         s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
-        return np.argmax(softmax(self.V.dot(self.s[0])))
+        return np.argmax(softmax(self.V.dot(s_t)))
 
     def _sentence_log_likelihood(self, Xi):
         X = np.zeros((len(Xi), self.N))
