@@ -31,7 +31,7 @@ def testRNN(vocabulary_file, training_dir):
             num_words += len(sentence)
 
         print("Iteration " + str(i + 1) + "/" + str(NUM_ITER) + " finished (" + str(num_words) + " words)")
-        print("Log-likelihood: ", rnn.log_likelihood(lik_sentences))
+        print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
         num_words = 0
 
     print("- Took %.2f sec" % (timer() - start))

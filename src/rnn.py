@@ -51,24 +51,20 @@ class RNN:
         for xi, di in zip(Xi, Xi[1:]):
             x = np.zeros(self.N)
             x[xi] = 1
-            d = np.zeros(self.N)
-            d[di] = 1
+
             self.s[1:] = self.s[:-1]
             self.s[0] = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
 
-            y = softmax(self.V.dot(self.s[0]))
-            err_out = d - y
+            err_out = -softmax(self.V.dot(self.s[0]))
+            err_out[di] += 1
 
-            self.V += lr * clip_grad(err_out[np.newaxis].T.dot(self.s[0][np.newaxis]),
-                                     self.grad_threshold)
+            self.V += lr * err_out[np.newaxis].T.dot(self.s[0][np.newaxis])
 
             err_hidden = err_out[np.newaxis].dot(self.V).dot(self.s[0]) * (1 - self.s[0])
 
-            self.U += lr * clip_grad(err_hidden[np.newaxis].T.dot(x[np.newaxis]),
-                                     self.grad_threshold)
-            self.W += lr * clip_grad(self.s[1].dot(err_hidden.T),
-                                    self.grad_threshold)
+            self.U += lr * err_hidden[np.newaxis].T.dot(x[np.newaxis])
+            self.W += lr * self.s[1].dot(err_hidden.T)
 
             for i in range(1, self.ntime - 1):
                 err_hidden = err_hidden[np.newaxis].dot(self.W).dot(self.s[i]) * (1 - self.s[i])
-                self.W += lr * clip_grad(self.s[i + 1].dot(err_hidden.T), self.grad_threshold)
+                self.W += lr * self.s[i + 1].dot(err_hidden.T)
