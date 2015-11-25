@@ -36,15 +36,6 @@ class RNNExtended:
                 np.argmax(softmax(self.V.dot(self.s[0])))
 
     def _sentence_log_likelihood(self, Xi):
-        h, index_lik = super(RNN, self)._sentence_log_likelihood(self, Xi)
-        log_c = h.dot(self.X.T)
-        a = np.max(log_c, axis=1)
-        log_Z = a + np.log(np.sum(np.exp((log_c.T - a).T), axis=1))
-        return h, np.sum(np.array([log_c[index, value]
-                                   for index, value in enumerate(Xi[1:])])
-                         - log_Z)
-
-    def _sentence_log_likelihood(self, Xi):
         X = np.zeros((len(Xi), self.N))
         for idx, xi in enumerate(Xi):
             X[idx][xi] = 1
