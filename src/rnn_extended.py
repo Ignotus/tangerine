@@ -40,7 +40,7 @@ class RNNExtended:
         for idx, xi in enumerate(Xi):
             X[idx][xi] = 1
 
-        h = X[:-1].dot(self.U.T) + self.s[1].dot(self.W)
+        h = sigmoid(X[:-1].dot(self.U.T) + self.s[1].dot(self.W))
         log_q = h.dot(self.V.T)
         a = np.max(log_q, axis=1)
         log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))
