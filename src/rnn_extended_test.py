@@ -18,7 +18,7 @@ def testRNN(vocabulary_file, training_dir):
     rnn = RNNExtended(len(words), HIDDEN_LAYER_SIZE)
     num_words = 0
     for i in range(NUM_ITER):
-        sentences = tokenize_files(dictionary, training_dir)    
+        sentences = tokenize_files(dictionary, training_dir, remove_stopwords=True)    
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             # Todo, create context window for each sentence?
             rnn.train(sentence)
@@ -30,5 +30,5 @@ def testRNN(vocabulary_file, training_dir):
     print("- Took %.2f sec" % (timer() - start))
 
 if __name__ == '__main__':
-    testRNN("../data/vocabulary/20k.txt", "../data/training")
+    testRNN("../data/vocabulary/20k.txt", "../data/training/small_1M")
    
