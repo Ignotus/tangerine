@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import itertools
 from rnn_extended import RNNExtended
+from rnn_extended_relu import RNNExtendedReLU
 from utils import read_vocabulary, tokenize_files
 from timeit import default_timer as timer
 
@@ -16,8 +17,9 @@ def testRNN(vocabulary_file, training_dir):
     print("Reading sentences and training RNN...")
     start = timer()
 
-    rnn = RNNExtended(len(words), HIDDEN_LAYER_SIZE)
-    
+    #rnn = RNNExtended(len(words), HIDDEN_LAYER_SIZE)
+    rnn = RNNExtendedReLU(len(words), HIDDEN_LAYER_SIZE)
+
     sentences = tokenize_files(dictionary, training_dir)
     lik_sentences = [sentence for sentence in itertools.islice(sentences, MAX_LIKELIHOOD_SENTENCES)]
 
