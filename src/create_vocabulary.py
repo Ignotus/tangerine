@@ -23,7 +23,7 @@ def constructVocabulary(folder):
 # Writes vocabulary to a given file, sorted by word counts (most common on top)
 def writeVocabulary(vocab, output_file):
     with open(output_file, 'w') as f:
-        f.write("\n".join([word[0] for word in vocab.most_common()]))
+        f.write("\n".join([word + " " + str(count) for word, count in vocab.most_common()]))
     print("Vocabulary written to " + output_file)
 
 if __name__ == '__main__':

@@ -25,50 +25,46 @@ class RNN:
 
     def predict(self, x):
         s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
-        return softmax(self.V.dot(self.s[0]))
+        return np.argmax(softmax(self.V.dot(s_t)))
 
-    def sentence_log_likelihood(self, Xi):
+    def _sentence_log_likelihood(self, Xi):
         X = np.zeros((len(Xi), self.N))
         for idx, xi in enumerate(Xi):
             X[idx][xi] = 1
 
-        h = X[:-1].dot(self.U.T) + self.s[1].dot(self.W)
+        h = sigmoid(X[:-1].dot(self.U.T) + self.s[1].dot(self.W))
         log_q = h.dot(self.V.T)
         a = np.max(log_q, axis=1)
-        log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T)))
+        log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))
         #print log_Z
         return np.sum(np.array([log_q[index, value]
-                                for (index,), value in np.ndenumerate(Xi[1:])])
+                                for index, value in enumerate(Xi[1:])])
                       - log_Z)
 
     def log_likelihood(self, Xii):
         """
             Xii is a list of list of indexes. Each list represent separate sentence
         """
-        return sum([self.sentence_log_likelihood(Xi) for Xi in Xii])
+        return sum([self._sentence_log_likelihood(Xi) for Xi in Xii])
 
     def train(self, Xi, lr=0.1):
         for xi, di in zip(Xi, Xi[1:]):
             x = np.zeros(self.N)
             x[xi] = 1
-            d = np.zeros(self.N)
-            d[di] = 1
+
             self.s[1:] = self.s[:-1]
             self.s[0] = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
 
-            y = softmax(self.V.dot(self.s[0]))
-            err_out = d - y
+            err_out = -softmax(self.V.dot(self.s[0]))
+            err_out[di] += 1
 
-            self.V += lr * clip_grad(err_out[np.newaxis].T.dot(self.s[0][np.newaxis]),
-                                     self.grad_threshold)
+            self.V += lr * err_out[np.newaxis].T.dot(self.s[0][np.newaxis])
 
             err_hidden = err_out[np.newaxis].dot(self.V).dot(self.s[0]) * (1 - self.s[0])
 
-            self.U += lr * clip_grad(err_hidden[np.newaxis].T.dot(x[np.newaxis]),
-                                     self.grad_threshold)
-            self.W += lr * clip_grad(self.s[1].dot(err_hidden.T),
-                                    self.grad_threshold)
+            self.U += lr * err_hidden[np.newaxis].T.dot(x[np.newaxis])
+            self.W += lr * self.s[1].dot(err_hidden.T)
 
             for i in range(1, self.ntime - 1):
                 err_hidden = err_hidden[np.newaxis].dot(self.W).dot(self.s[i]) * (1 - self.s[i])
-                self.W += lr * clip_grad(self.s[i + 1].dot(err_hidden.T), self.grad_threshold)
+                self.W += lr * self.s[i + 1].dot(err_hidden.T)

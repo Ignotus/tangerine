@@ -38,5 +38,5 @@ def testSkipGram(vocabulary_file, training_dir):
     print("- Took %.2f sec" % (timer() - start))
 
 if __name__ == '__main__':
-    testSkipGram("../data/vocabulary/20k.txt", "../data/training")
+    testSkipGram("../data/vocabulary/20k.txt", "../data/training/small_1M")
    

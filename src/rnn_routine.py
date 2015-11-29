@@ -1,9 +1,13 @@
+import abc
 import numpy as np
 from scipy.special import expit
 
 # http://stackoverflow.com/questions/3985619/how-to-calculate-a-logistic-sigmoid-function-in-python
 def sigmoid(x):
     return expit(x)
+
+def relu(x):
+    return np.maximum(0, x)
 
 def softmax(x):
     exp_x = np.exp(x)
