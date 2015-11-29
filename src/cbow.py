@@ -2,7 +2,7 @@ import numpy as np
 from sys import argv
 import nltk.data
 from nltk.tokenize import RegexpTokenizer
-from random import randint
+import random
 import itertools
 from cbow_utils import create_context_windows
 
@@ -17,9 +17,13 @@ class CBOW:
 
     C = None  # the size of the context window
 
+    iAlpha = None  # the learning rate for input parameters
+    oAlpha = None  # for output parameters
+    alpha=None # raw learning rate
+
 
     # n the number of dimensions of vectors
-    def __init__(self, C, n, vocab):
+    def __init__(self, C, n, alpha, vocab):
         self.vocab = vocab
         self.v = len(self.vocab)
         self.encode_huffman()  # encode the voc. as the huffman binary tree
@@ -27,9 +31,17 @@ class CBOW:
         self.C = C
         self.V = np.ones((self.v, self.dim))
         self.W = np.ones((self.dim, self.v))
+        self.alpha=alpha
+        self.iAlpha = LR(alpha, self.v, n)
+        self.oAlpha = LR(alpha, self.v, n)
 
-    def train(self, alpha, sent):
+
+    def train(self, sent):
         CWs = create_context_windows(sent, self.C)
+
+        # need to find a way to shuffle generator
+        # np.random.shuffle(CWs)
+
         for cw in CWs:
             t = cw[0]  # the actual center word
             EH = np.zeros(self.dim)
@@ -40,10 +52,13 @@ class CBOW:
                 p = sigmoid(self.W[:, target].T.dot(h))
                 g = p - code
                 EH += g * self.W[:, target]  # will be used to update input->hidden layer
-                self.W[:, target] -= alpha * g * h  # 1. updating hidden -> output layer
+                der = g * h
+                self.W[:, target] -= self.oAlpha.getLR(target) * der  # 1. updating hidden -> output layer
+                self.oAlpha.updateTotalGrad(target, der)
 
             for w in cw[1]:
-                self.V[w, :] -= (alpha / self.C) * EH  # 2. updating input->hidden layer
+                self.V[w, :] -= (self.iAlpha.getLR(w) / self.C) * EH  # 2. updating input->hidden layer
+                self.iAlpha.updateTotalGrad(w, EH)
 
 
     def encode_huffman(self):
@@ -115,18 +130,17 @@ class CBOW:
         return LL
 
 
-
     # hierarchical softmax
     def hsm(self, j, h):
         classifiers = zip(self.vocab[j].path, self.vocab[j].code)
-        res=0
+        res = 0
         for target, code in classifiers:
-            t = 1 if code==1 else -1
-            res+= sigmoid(t*self.W[:,target].T.dot(h))
+            t = 1 if code == 1 else -1
+            res += sigmoid(t * self.W[:, target].T.dot(h))
         return res
 
 
-########## SUPPORT FUNCTIONS ###########
+########## SUPPORT FUNCTIONS AND CLASSES ###########
 
 
 def sigmoid(z):
@@ -138,38 +152,52 @@ def sigmoid(z):
         return 1 / (1 + np.exp(-z))
 
 
+# the class can be instantiated and will contain learning rates for parameters
+class LR:
+    grads = None  # accumulated grads array for every parameter
+    alpha = None  # the initial learning rate
+
+    # x: the number of words
+    # y: the dimensionality of wordvectors
+    def __init__(self, alpha, x, y):
+        self.alpha = alpha
+        self.grads = []
+        for i in range(x):
+            self.grads.append(np.ones(y))
+
+    # returns a vector of learning rates
+    # i: the word i
+    def getLR(self, i):
+        return self.alpha / np.sqrt(self.grads[i])
+
+    # i: is the row of parameters
+    # grad: a vector of gradients
+    def updateTotalGrad(self, i, grad):
+        self.grads[i] += np.power(grad, 2)
+
+        # OUTDATED:
 
 
+        # def getEH(self, t, h):
+        # res = 0
+        # for j in range(0, self.v):
+        # res += self.getE(j, t, h) * (self.W[:, j])
+        # return res
+        #
+        #
+        # # h: hidden neuron values
+        # def getE(self, j, t, h):
+        #     if (t == j):
+        #         r = self.y(j, h) - 1
+        #     else:
+        #         r = self.y(j, h)
+        #     return r
 
-
-
-
-
-
-
-# OUTDATED:
-
-
-    # def getEH(self, t, h):
-    #     res = 0
-    #     for j in range(0, self.v):
-    #         res += self.getE(j, t, h) * (self.W[:, j])
-    #     return res
-    #
-    #
-    # # h: hidden neuron values
-    # def getE(self, j, t, h):
-    #     if (t == j):
-    #         r = self.y(j, h) - 1
-    #     else:
-    #         r = self.y(j, h)
-    #     return r
-
-#     # normal softmax
+# # normal softmax
 # def y(self, j, h):
-#     if (self.Cache_Z == None):
-#         Z = 0
-#         for i in range(0, self.v):
+# if (self.Cache_Z == None):
+# Z = 0
+# for i in range(0, self.v):
 #             Z += np.exp(self.W[:, i].T.dot(h))
 #         if (Z == 0): return 0
 #         self.Cache_Z = Z

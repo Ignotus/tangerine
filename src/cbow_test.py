@@ -11,28 +11,31 @@ import profile
 # vocab_file = '../data/cbow/vocab/small.txt'
 
 
+# might want to comment out when the voc. is already created
+# voc = constructVocabulary(train_dir)
+# writeVocabulary(voc, vocab_file)
+
 train_dir = '../data/training/small_1M'
 vocab_file = '../data/vocabulary/news.txt'
 
-alpha = 0.15 # learning rate
+alpha = 0.15 # the initial learning rate
 
-C = 5 # window size
-n = 200 # the number of components in the hident layer
+C = 3 # window size
+n = 100 # the number of components in the hident layer
 
 EPOCHS = 1
+
 MAX_VOCAB_SIZE = 200000000000 # use all
 MAX_SENTENCES = 500000000000 # use all
 MAX_LL_SENTENCES=5000
 
-voc = constructVocabulary(train_dir)
-writeVocabulary(voc, vocab_file)
 
 print("Reading vocabulary " + vocab_file + "...")
 index_to_word,word_to_index = read_vocabulary(vocab_file, MAX_VOCAB_SIZE)
 print("Reading sentences and training CBOW ...")
 
 start = timer()
-myCbow = CBOW(C, n, index_to_word)
+myCbow = CBOW(C, n, alpha,index_to_word)
 
 # for performance plots
 ERROR = []
@@ -47,7 +50,7 @@ def run():
             EP.append(i)
 
             for sentence in itertools.islice(sentences2, MAX_SENTENCES):
-                myCbow.train(alpha, sentence)
+                myCbow.train(sentence)
                 num_words += len(sentence)
             print("EPOCH " + str(i + 1) + "/" + str(EPOCHS) + " finished (" + str(num_words) + " words)")
             num_words = 0
@@ -56,6 +59,10 @@ def run():
 run()
 ERROR.append(myCbow.computeLL(itertools.islice(tokenize_files(word_to_index, train_dir),MAX_LL_SENTENCES)))
 EP.append(EPOCHS)
+
+
+print(EP)
+print(ERROR)
 
 print("- Took %.2f sec" % (timer() - start))
 plt.plot(EP,ERROR)
