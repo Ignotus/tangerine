@@ -87,10 +87,11 @@ class RNNExtendedReLU:
             err_hidden = (err_c[np.newaxis].dot(self.X) + err_out[np.newaxis].dot(self.V)).flatten()
 
             self.U += lr * clip_grad(err_hidden[np.newaxis].T.dot(x[np.newaxis]), self.grad_threshold)
-            self.W += lr * clip_grad(self.s[1].dot(err_hidden.T), self.grad_threshold)
+            err_W = clip_grad(self.s[1].dot(err_hidden.T), self.grad_threshold)
 
             for i in range(1, self.ntime - 1):
                 err_hidden = err_hidden[np.newaxis].dot(self.W)
-                self.W += lr * clip_grad(self.s[i + 1].dot(err_hidden.T), self.grad_threshold)
+                err_W += clip_grad(self.s[i + 1].dot(err_hidden.T), self.grad_threshold)
 
+            self.W += lr * err_W
 
