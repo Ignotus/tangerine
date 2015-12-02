@@ -4,6 +4,7 @@ from collections import defaultdict
 from nltk.tokenize import word_tokenize
 import itertools
 import nltk
+from h_softmax import VocabItem
 
 IGNORED_TOKEN = "IGNORED_TOKEN"
 
@@ -19,14 +20,14 @@ def tokenize_file(vocab_dict, file):
                 if words:
                   yield [vocab_dict[word] for word in words]
 
-def read_vocabulary(filename, maxsize):
+def read_vocabulary(filename, maxsize,sep=' '):
     index_to_word = []
     with open(filename) as f:
         for word in itertools.islice(f, 0, maxsize):
-            splt=word.split(',')
+            splt=word.split(sep)
             index_to_word.append(VocabItem(splt[0],int(splt[1].strip())))
     index_to_word.append(VocabItem(IGNORED_TOKEN,0))
-    word_to_index = dict([ (w.word, i) for i, w in enumerate(index_to_word)])
+    word_to_index = dict([ (w.word, (i, w.count)) for i, w in enumerate(index_to_word)])
     return index_to_word, word_to_index
 
 
@@ -52,14 +53,7 @@ def constructVocabulary(folder):
             freqs.update(words)
     return freqs
 
-def writeVocabulary(vocab, output_file):
+def writeVocabulary(vocab, output_file,sep=' '):
     with open(output_file, 'w') as f:
-        f.write("\n".join([','.join((word[0],str(word[1]))) for word in vocab.most_common()]))
+        f.write("\n".join([sep.join((word[0],str(word[1]))) for word in vocab.most_common()]))
     print("Vocabulary written to " + output_file)
-
-class VocabItem:
-    def __init__(self, word,count):
-        self.word = word
-        self.count = count
-        self.path = None  # Path (list of indices) from the root to the word (leaf)
-        self.code = None  # Huffman encoding

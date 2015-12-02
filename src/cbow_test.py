@@ -1,32 +1,38 @@
 from cbow import CBOW
 from utils import  tokenize_files
-from cbow_utils import tokenize_file, constructVocabulary, writeVocabulary,read_vocabulary
+from cbow_utils import tokenize_file, constructVocabulary, writeVocabulary,tokenize_file,read_vocabulary
 from timeit import default_timer as timer
 import matplotlib.pyplot as plt
 import itertools
 import profile
 
-# train_dir = '../data/cbow/train/small/'
-# output = '../data/cbow/vocab/small.txt'
-# vocab_file = '../data/cbow/vocab/small.txt'
+train_dir = '../data/cbow/train/small/'
+output = '../data/cbow/vocab/small.txt'
+vocab_file = '../data/cbow/vocab/small.txt'
 
+
+
+#train_dir = '../data/training/small_1M'
+# train_file = '../data/training/small_1M/news.txt'
+# vocab_file = '../data/vocabulary/news.txt'
+
+# train_dir = '../data/training/medium_10M/'
+# vocab_file = '../data/vocabulary/news.txt'
 
 # might want to comment out when the voc. is already created
-# voc = constructVocabulary(train_dir)
-# writeVocabulary(voc, vocab_file)
+voc = constructVocabulary(train_dir)
+writeVocabulary(voc, vocab_file,' ')
 
-train_dir = '../data/training/small_1M'
-vocab_file = '../data/vocabulary/news.txt'
 
-alpha = 0.15 # the initial learning rate
+alpha = 0.25 # the initial learning rate
 
-C = 3 # window size
-n = 100 # the number of components in the hident layer
+C = 5 # window size
+n = 150 # the number of components in the hidden layer
 
 EPOCHS = 1
 
-MAX_VOCAB_SIZE = 200000000000 # use all
-MAX_SENTENCES = 500000000000 # use all
+MAX_VOCAB_SIZE = 5000000000 # use all
+MAX_SENTENCES = 50000000000000 # use all
 MAX_LL_SENTENCES=5000
 
 
