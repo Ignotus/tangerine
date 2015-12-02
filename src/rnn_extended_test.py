@@ -6,7 +6,7 @@ from utils import read_vocabulary, tokenize_files
 from timeit import default_timer as timer
 
 MAX_VOCAB_SIZE = 5000
-MAX_SENTENCES = 100
+MAX_SENTENCES = 1000
 MAX_LIKELIHOOD_SENTENCES = 100
 NUM_ITER = 5
 HIDDEN_LAYER_SIZE = 20
@@ -17,8 +17,8 @@ def testRNN(vocabulary_file, training_dir):
     print("Reading sentences and training RNN...")
     start = timer()
 
-    #rnn = RNNExtended(len(words), HIDDEN_LAYER_SIZE)
-    rnn = RNNExtendedReLU(len(words), HIDDEN_LAYER_SIZE)
+    rnn = RNNExtended(len(words), HIDDEN_LAYER_SIZE)
+    #rnn = RNNExtendedReLU(len(words), HIDDEN_LAYER_SIZE)
 
     sentences = tokenize_files(dictionary, training_dir)
     lik_sentences = [sentence for sentence in itertools.islice(sentences, MAX_LIKELIHOOD_SENTENCES)]

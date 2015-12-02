@@ -19,7 +19,6 @@ class RNN:
         self.ntime = 3
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
-        self.grad_threshold = 100
 
     def word_representation(self, word_idx):
         return self.V[word_idx, :]
@@ -56,12 +55,14 @@ class RNN:
 
             self.s[1:] = self.s[:-1]
             self.deriv_s[1:] = self.deriv_s[:-1]
+
             self.s[0] = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
             self.deriv_s[0] = self.s[0] * (1 - self.s[0])
 
             err_out = -softmax(self.V.dot(self.s[0]))
             err_out[di] += 1
 
+            #print(err_out[None].T.flags)
             self.V += lr * err_out[None].T.dot(self.s[0][None])
 
             err_hidden[0] = self.V.T.dot(err_out) * self.deriv_s[0]
