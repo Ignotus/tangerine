@@ -37,7 +37,7 @@ class RNNReLU(RNN):
             self.s[1:] = self.s[:-1]
             #self.deriv_s[1:] = self.deriv_s[:-1]
 
-            self.s[0] = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
+            self.s[0] = relu(self.U.dot(x) + self.W.dot(self.s[1]))
             #self.deriv_s[0] = self.s[0] * (1 - self.s[0])
 
             err_out = -softmax(self.V.dot(self.s[0]))
