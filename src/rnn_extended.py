@@ -24,8 +24,6 @@ class RNNExtended:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
-        self.grad_threshold = 100
-
     def word_representation(self, word_idx):
         idx = word_idx % self.class_size
         word_class = word_idx // self.class_size
