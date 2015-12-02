@@ -17,10 +17,10 @@ from timeit import default_timer as timer
 # Contains one sentence tokenized per newline
 
 MAX_VOCAB_SIZE = 10000
-MAX_SENTENCES = 100
+MAX_SENTENCES = 1000
 MAX_LIKELIHOOD_SENTENCES = 100
 
-def testRNN(model, vocabulary_file, training_dir):
+def testRNN(args, vocabulary_file, training_dir):
     print("Reading vocabulary " + vocabulary_file + "...")
     words, dictionary = read_vocabulary(vocabulary_file, MAX_VOCAB_SIZE)
     print("Reading sentences and training RNN...")
