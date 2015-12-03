@@ -63,10 +63,10 @@ if __name__ == '__main__':
 
     rnn_mode = ['RNN', 'RNNReLU', 'RNNExtended', 'RNNExtendedReLU']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
-    parser.add_argument('--iter', default=5, help='Number of iterations')
-    parser.add_argument('--nhidden', default=20, help='Hidden layer size')
-    parser.add_argument('--maxgrad', default=0.01, help='Gradient clipping threshold (is used only with ReLU models)')
-    parser.add_argument('--class_size', default=10000, help='Class size (is used only with RNNExtended models)')
+    parser.add_argument('--iter', default=5, help='Number of iterations', type=int)
+    parser.add_argument('--nhidden', default=20, help='Hidden layer size', type=int)
+    parser.add_argument('--maxgrad', default=0.01, help='Gradient clipping threshold (is used only with ReLU models)', type=float)
+    parser.add_argument('--class_size', default=10000, help='Class size (is used only with RNNExtended models)', type=int)
 
     args = parser.parse_args()
     if len(sys.argv) == 1:
