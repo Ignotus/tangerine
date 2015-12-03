@@ -24,10 +24,8 @@ class RNNExtended:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
-    def word_representation(self, word_idx):
-        idx = word_idx % self.class_size
-        word_class = word_idx // self.class_size
-        return np.hstack((self.V[idx, :], self.X[word_class, :]))
+    def word_representation_inner(self, word_idx):
+        return self.U[:, word_idx]
 
     def predict(self, x):
         s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
