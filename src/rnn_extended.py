@@ -12,12 +12,12 @@ class RNNExtended:
         self.class_size = class_size
 
         # Randomly initialize weights
-        self.U = 0.1 * np.random.randn(self.H, self.N)
-        self.W = 0.1 * np.random.randn(self.H, self.H)
-        self.V = 0.1 * np.random.randn(self.class_size, self.H)
+        self.U = np.random.randn(self.H, self.N)
+        self.W = np.random.randn(self.H, self.H)
+        self.V = np.random.randn(self.class_size, self.H)
         nclass = np.ceil(float(self.N) / self.class_size)
         print("Number of classes: %d" % (nclass))
-        self.X = 0.1 * np.random.randn(nclass, self.H)
+        self.X = np.random.randn(nclass, self.H)
 
         # Initial state of the hidden layer
         self.ntime = 3
