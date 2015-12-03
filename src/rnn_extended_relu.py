@@ -16,11 +16,11 @@ class RNNExtendedReLU(RNNExtended):
                 np.argmax(softmax(self.V.dot(s_t)))
 
     def _sentence_log_likelihood(self, Xi):
-        X = np.zeros((len(Xi), self.N))
+        hX = np.zeros((len(Xi), self.H))
         for idx, xi in enumerate(Xi):
-            X[idx][xi] = 1
+            hX[idx] = self.U[:,xi]
 
-        h = relu(X[:-1].dot(self.U.T) + self.s[1].dot(self.W))
+        h = relu(hX + self.s[1].dot(self.W))
         log_q = h.dot(self.V.T)
         a = np.max(log_q, axis=1)
         log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))
@@ -38,7 +38,7 @@ class RNNExtendedReLU(RNNExtended):
                       - log_C)
 
     def train(self, Xi, lr=0.1):
-        err_hidden = np.zeros((self.ntime - 1, self.H))
+        err_hidden = np.empty((self.ntime - 1, self.H))
         for xi, di in zip(Xi, Xi[1:]):
             class_id = di // self.class_size
 
