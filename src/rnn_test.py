@@ -61,7 +61,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    rnn_mode = ['RNN', 'RNNReLU', 'RNNExtended', 'RNNExtendedReLU']
+    rnn_mode = ['RNN', 'RNNReLU', 'RNNExtended', 'RNNExtendedReLU', 'RNNHSoftmax']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=5, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=20, help='Hidden layer size', type=int)

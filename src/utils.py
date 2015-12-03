@@ -7,6 +7,8 @@ from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
+import h_softmax.VocabItem
+
 IGNORED_TOKEN = "IgnoreToken"
 SUBSAMPLING_THRESHOLD = 10e-5
 STOPWORDS = set(stopwords.words('english'))
@@ -75,6 +77,9 @@ def read_vocabulary(filename, maxsize):
     index_to_word.append([IGNORED_TOKEN, -1])
     word_to_index = dict([ (w[0], (i, w[1])) for i, w in enumerate(index_to_word)])
     return index_to_word, word_to_index
+
+def index2word_to_VocabItems(index_to_word):
+    return [h_softmax.VocabItem(word, count) for word, count in index_to_word]
 
 # Yield a list of lists of indices corresponding
 # to context windows surrounding each word in the sentence
