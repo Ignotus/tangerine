@@ -7,23 +7,18 @@ from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-IGNORED_TOKEN = "IgnoreToken"
+IGNORED_TOKEN = "IgnoredToken"
 SUBSAMPLING_THRESHOLD = 10e-5
-STOPWORDS = set(stopwords.words('english'))
 
- # Sub-sampling of frequent words: can improve both accuracy and speed for large data sets 
+# Sub-sampling of frequent words: can improve both accuracy and speed for large data sets 
 # Source: "Distributed Representations of Words and Phrases and their Compositionality"
 def remove_with_prob(word, vocab_dict, total_wordcount):
     freq = float(vocab_dict[word][1]) / total_wordcount
     removal_prob = 1.0 - np.sqrt(SUBSAMPLING_THRESHOLD / freq)
     return np.random.random_sample() < removal_prob
 
-def allow_word(word, vocab_dict, total_wordcount, remove_stopwords=False, subsample_frequent=False, min_word_count=5):
-    allow = True
-    if remove_stopwords:
-        allow = word.isalnum() and word not in STOPWORDS
-    else:
-        allow = word.isalnum()
+def allow_word(word, vocab_dict, total_wordcount, subsample_frequent):
+    allow = word.isalnum()
     if not allow:
         return False
 
@@ -35,10 +30,6 @@ def allow_word(word, vocab_dict, total_wordcount, remove_stopwords=False, subsam
     if not allow:
         return False
 
-    # Minimum word count
-    if min_word_count > 1:
-        allow = vocab_dict[word][1] >= min_word_count or word is IGNORED_TOKEN
-
     return allow
 
 # Tokenizes the files in the given folder
@@ -46,7 +37,7 @@ def allow_word(word, vocab_dict, total_wordcount, remove_stopwords=False, subsam
 # - Yields sentences split up in words, represented by vocabulary index
 # Files in data folder should be tokenized by sentence (one sentence per newline),
 # Like in the 1B-words benchmark
-def tokenize_files(vocab_dict, datafolder, remove_stopwords=False, subsample_frequent=False, min_word_count=5):
+def tokenize_files(vocab_dict, datafolder, subsample_frequent=False):
     total_dict_words = sum([value[1] for key, value in vocab_dict.items()])
     filenames = glob.glob(datafolder + "/*")
     for filename in filenames:
@@ -54,22 +45,26 @@ def tokenize_files(vocab_dict, datafolder, remove_stopwords=False, subsample_fre
             for sentence in f:
                 # Use nltk tokenizer to split the sentence into words
                 words = word_tokenize(sentence.lower())
-                # Filter
-                words = [word for word in words if allow_word(word, vocab_dict, total_dict_words, remove_stopwords, subsample_frequent, min_word_count)]
+                # Filter (remove punctuation)
+                words = [word for word in words if allow_word(word, vocab_dict, total_dict_words, subsample_frequent)]
                 # Replace words that are not in vocabulary with special token
                 words = [word if word in vocab_dict else IGNORED_TOKEN for word in words]
                 # Yield the sentence as indices
                 if words:
-                    yield [vocab_dict[word][0] for word in words if vocab_dict[word]]
+                    yield [vocab_dict[word][0] for word in words]
 
 def parse_word(string):
     parts = string.strip().split()
     return (parts[0], int(parts[1]))
 
-def read_vocabulary(filename, maxsize):
+
+# min_count: drop words from vocabulary that have count less than min_count
+# max_size: limit the vocabulary size (use only the top 'max_size' words in the vocabulary list)
+def read_vocabulary(filename, max_size=None, min_count=5):
     index_to_word = []
     with open(filename) as f:
-        index_to_word = [parse_word(word) for word in itertools.islice(f, 0, maxsize)]
+        index_to_word = [parse_word(word) for word in itertools.islice(f, 0, max_size)]
+        index_to_word = [word for word in index_to_word if word[1] > min_count]
 
     # Mapping from "word" -> (index, occurrence_count)
     index_to_word.append([IGNORED_TOKEN, -1])
