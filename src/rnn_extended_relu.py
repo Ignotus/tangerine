@@ -20,7 +20,7 @@ class RNNExtendedReLU(RNNExtended):
         for idx, xi in enumerate(Xi):
             hX[idx] = self.U[:,xi]
 
-        h = relu(hX + self.s[1].dot(self.W))
+        h = relu(hX[:-1] + self.s[1].dot(self.W))
         log_q = h.dot(self.V.T)
         a = np.max(log_q, axis=1)
         log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))
