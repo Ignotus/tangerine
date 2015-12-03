@@ -11,9 +11,9 @@ class RNN:
         self.H = hidden_layer_size
 
         # Randomly initialize weights
-        self.U = 0.1 * np.random.randn(self.H, self.N)
-        self.W = 0.1 * np.random.randn(self.H, self.H)
-        self.V = 0.1 * np.random.randn(self.N, self.H)
+        self.U = np.random.randn(self.H, self.N)
+        self.W = np.random.randn(self.H, self.H)
+        self.V = np.random.randn(self.N, self.H)
 
         # Initial state of the hidden layer
         self.ntime = 3
