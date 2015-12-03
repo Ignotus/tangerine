@@ -7,7 +7,7 @@ from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-import h_softmax.VocabItem
+import h_softmax
 
 IGNORED_TOKEN = "IgnoreToken"
 SUBSAMPLING_THRESHOLD = 10e-5
@@ -73,8 +73,11 @@ def read_vocabulary(filename, max_size=None, min_count=5):
     word_to_index = dict([ (w[0], (i, w[1])) for i, w in enumerate(index_to_word)])
     return index_to_word, word_to_index
 
+# Returns a list of VocabItem items with a prepared Hoffman binary tree
 def index2word_to_VocabItems(index_to_word):
-    return [h_softmax.VocabItem(word, count) for word, count in index_to_word]
+    vocItems = [h_softmax.VocabItem(word, count) for word, count in index_to_word]
+    h_softmax.encode_huffman(vocItems)
+    return vocItems
 
 # Yield a list of lists of indices corresponding
 # to context windows surrounding each word in the sentence
