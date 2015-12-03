@@ -8,8 +8,10 @@ from rnn import RNN
 from rnn_relu import RNNReLU
 from rnn_extended import RNNExtended
 from rnn_extended_relu import RNNExtendedReLU
+from rnn_hierarchical_softmax import RNNHSoftmax
+from rnn_hierarchical_softmax_grad_clip import RNNHSoftmaxGradClip
 
-from utils import read_vocabulary, tokenize_files
+from utils import read_vocabulary, tokenize_files, index2word_to_VocabItems
 from timeit import default_timer as timer
 
 # Use preprocessed data from:
@@ -17,7 +19,7 @@ from timeit import default_timer as timer
 # Contains one sentence tokenized per newline
 
 MIN_WORD_COUNT=5
-MAX_SENTENCES = 10000000
+MAX_SENTENCES = 100
 MAX_LIKELIHOOD_SENTENCES = 100
 
 def write_vectors(words, rnn, filename):
@@ -44,9 +46,16 @@ def testRNN(args, vocabulary_file, training_dir):
         rnn.grad_threshold = args.maxgrad
     elif args.model == 'RNNExtended':
         rnn = RNNExtended(len(words), args.nhidden, args.class_size)
-    else:
+    elif args.model == 'RNNExtendedReLU':
         rnn = RNNExtendedReLU(len(words), args.nhidden, args.class_size)
         rnn.grad_threshold = args.maxgrad
+    elif args.model == 'RNNHSoftmax':
+        vocItems = index2word_to_VocabItems(words)
+        rnn = RNNHSoftmax(args.nhidden, vocItems)
+    elif args.model == 'RNNHSoftmaxGradClip':
+        vocItems = index2word_to_VocabItems(words)
+        rnn = RNNHSoftmaxGradClip(args.nhidden, vocItems)
+
     
     num_words = 0
     sentences = tokenize_files(dictionary, training_dir)
@@ -75,7 +84,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    rnn_mode = ['RNN', 'RNNReLU', 'RNNExtended', 'RNNExtendedReLU', 'RNNHSoftmax']
+    rnn_mode = ['RNN', 'RNNReLU', 'RNNExtended', 'RNNExtendedReLU', 'RNNHSoftmax', 'RNNHSoftmaxGradClip']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=5, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=100, help='Hidden layer size', type=int)
@@ -88,5 +97,5 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit()
 
-    testRNN(args, "../data/vocabulary/small.txt", "../data/training/mini")
+    testRNN(args, "../data/vocabulary/small.txt", "../data/training/small_1M")
 
