@@ -65,14 +65,12 @@ class RNNExtended:
     def train(self, Xi, lr=0.1):
         err_hidden = np.zeros((self.ntime - 1, self.H))
         for xi, di in zip(Xi, Xi[1:]):
-            x = np.zeros(self.N)
-            x[xi] = 1
             class_id = di // self.class_size
 
             self.s[1:] = self.s[:-1]
             self.deriv_s[1:] = self.deriv_s[:-1]
 
-            self.s[0] = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
+            self.s[0] = sigmoid(self.U[:,xi] + self.W.dot(self.s[1]))
             self.deriv_s[0] = self.s[0] * (1 - self.s[0])
 
             err_out = -softmax(self.V.dot(self.s[0]))
@@ -88,6 +86,6 @@ class RNNExtended:
             for i in range(1, self.ntime - 1):
                 err_hidden[i] = self.W.T.dot(err_hidden[i - 1]) * self.deriv_s[i]
 
-            self.U += lr * err_hidden[0][None].T.dot(x[None])
+            self.U[:, xi] += lr * err_hidden[0]
             self.W += lr * err_hidden.T.dot(self.s[1:])
 
