@@ -7,7 +7,7 @@ def sigmoid(x):
     return expit(x)
 
 def relu(x):
-    return max(0, x)
+    return np.maximum(0, x)
 
 def softmax(x):
     exp_x = np.exp(x)
