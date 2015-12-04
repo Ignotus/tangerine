@@ -85,7 +85,7 @@ def create_context_windows(sentence, window_size):
     for i in range(0, len(sentence)):
         context_window = []
 
-        for j in range(-(window_size/2), (window_size/2)+1):
+        for j in range(-(window_size), (window_size)+1):
             if j != 0 and i+j >= 0 and i+j < len(sentence):
                 context_window.append(sentence[i+j])
 
