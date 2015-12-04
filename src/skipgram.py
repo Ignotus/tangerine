@@ -1,6 +1,7 @@
 import numpy as np
 from enum import Enum
 from utils import create_context_windows
+from scipy.special import expit
 
 class SkipGramOptimizations(Enum):
     none                 = 1
@@ -11,14 +12,15 @@ class SkipGramOptimizations(Enum):
 class SkipGram():
 
     def __init__(self, vocab_size, optimizations=SkipGramOptimizations.none, \
-                window_size=4, hidden_layer_size=100):
+                window_size=4, hidden_layer_size=100, num_negative_samples=10):
 
         # Set the correct training and log-likelihood functions
         if optimizations is SkipGramOptimizations.none:
             self.train_fun = self.__train_plain
             self.compute_LL_fun = self.__compute_LL_plain
         elif optimizations is SkipGramOptimizations.negative_sampling:
-            pass
+            self.train_fun = self.__train_negative_sampling
+            self.compute_LL_fun = self.__compute_LL_negative_sampling
         elif optimizations is SkipGramOptimizations.hierarchical_softmax:
             pass
 
@@ -26,6 +28,7 @@ class SkipGram():
         self.V = vocab_size
         self.N = hidden_layer_size
         self.C = window_size
+        self.K = num_negative_samples
 
         # Randomly initialize weights
         self.W = np.random.randn(self.V, self.N)
@@ -35,10 +38,46 @@ class SkipGram():
         self.train_fun(sentence, learning_rate)
 
     def compute_LL(self, sentences):
-        self.compute_LL_fun(sentences)
+        return self.compute_LL_fun(sentences)
 
-    def __train_plain(self, sentence, learning_rate):
-        eta = learning_rate
+    def __train_negative_sampling(self, sentence, eta):
+        for center_word, context in create_context_windows(sentence, self.C): 
+
+            # Retrieve the input vector for the center word
+            h = self.W[center_word, :]
+
+            # Draw K negative samples (TODO unigram distribution)
+            negative_samples = np.random.randint(0, self.V, self.K)
+            positive_sample = center_word
+
+            # Calculate the net input scores for all samples ([u_1, ..., u_K+1])
+            u = np.zeros(self.K + 1)
+            for j in range(self.K):
+                u[j] = np.dot(h, self.W_prime[:, negative_samples[j]])
+            u[self.K] = np.dot(h, self.W_prime[:, positive_sample])
+
+            # Calculate the output values for all samples
+            y = expit(u)
+
+            # Calculate the summed prediction errors
+            EI = np.zeros(self.K + 1)
+            for j in range(self.K):
+                for c in context:
+                    EI[j] += (y[j] - (c == negative_samples[j]))
+
+            # Calculate the summed prediction error for the positive sample
+            for c in context:
+                EI[self.K] += (y[self.K] - (c == center_word))
+
+            # Update the hidden->ouput matrix for the negative samples
+            for j in range(self.K):
+                pass
+
+
+    def __compute_LL_negative_sampling(self, sentences):
+        pass
+
+    def __train_plain(self, sentence, eta):
         for center_word, context in create_context_windows(sentence, self.C): 
 
             # Retrieve the input vector for the center word

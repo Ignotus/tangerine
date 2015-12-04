@@ -8,7 +8,7 @@ TRAINING_DIR = "../data/skipgram/hyperparameters/training/"
 TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
 
 # External parameters
-OPTIMIZATIONS   = SkipGramOptimizations.none
+OPTIMIZATIONS   = SkipGramOptimizations.negative_sampling
 NUM_EPOCHS      = 1
 MIN_OCCURRENCES = 5
 
@@ -35,6 +35,7 @@ def test_skip_gram():
 
     # Do several training epochs over our training data
     for i in range(NUM_EPOCHS):
+        start_epoch = timer()
         num_words = 0
 
         # Go over the entire training dataset
@@ -44,7 +45,8 @@ def test_skip_gram():
 
         # Print a status update
         print("Trained epoch #" + str(i + 1) + "/" + str(NUM_EPOCHS) + \
-                ", processed " + str(num_words) + " words")
+                ", processed " + str(num_words) + " words" + \
+                ", took %.02f seconds.", (timer() - start_epoch))
 
         # Measure the log-likelihood
         LL = skip_gram.compute_LL(tokenize_files(dictionary, TESTING_DIR))
