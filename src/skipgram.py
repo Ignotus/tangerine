@@ -35,7 +35,7 @@ class SkipGram():
         self.train_fun(sentence, learning_rate)
 
     def compute_LL(self, sentences):
-        self.compute_LL_fun(sentences)
+        return self.compute_LL_fun(sentences)
 
     def __train_plain(self, sentence, learning_rate):
         eta = learning_rate
