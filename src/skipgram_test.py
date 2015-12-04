@@ -1,7 +1,6 @@
-from skipgram import SkipGram
+from skipgram import SkipGram, SkipGramOptimizations
 from utils import read_vocabulary, tokenize_files
 from timeit import default_timer as timer
-# import itertools
 
 # Datasets
 VOCAB_FILE   = "../data/skipgram/vocab_1M.txt"
@@ -9,6 +8,7 @@ TRAINING_DIR = "../data/skipgram/hyperparameters/training/"
 TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
 
 # External parameters
+OPTIMIZATIONS   = SkipGramOptimizations.none
 NUM_EPOCHS      = 1
 MIN_OCCURRENCES = 5
 
@@ -31,7 +31,7 @@ def test_skip_gram():
     # Create the SkipGram model, start the timer
     start = timer()
     skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
-            hidden_layer_size=HIDDEN_LAYER_SIZE)
+            hidden_layer_size=HIDDEN_LAYER_SIZE, optimizations=OPTIMIZATIONS)
 
     # Do several training epochs over our training data
     for i in range(NUM_EPOCHS):

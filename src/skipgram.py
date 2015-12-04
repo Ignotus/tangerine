@@ -1,10 +1,26 @@
 import numpy as np
+from enum import Enum
 from utils import create_context_windows
+
+class SkipGramOptimizations(Enum):
+    none                 = 1
+    negative_sampling    = 2
+    hierarchical_softmax = 3
 
 # Notation used from: word2vec Parameter Learning Explained - Xin Rong
 class SkipGram():
 
-    def __init__(self, vocab_size, window_size=4, hidden_layer_size=100):
+    def __init__(self, vocab_size, optimizations=SkipGramOptimizations.none, \
+                window_size=4, hidden_layer_size=100):
+
+        # Set the correct training and log-likelihood functions
+        if optimizations is SkipGramOptimizations.none:
+            self.train_fun = self.__train_plain
+            self.compute_LL_fun = self.__compute_LL_plain
+        elif optimizations is SkipGramOptimizations.negative_sampling:
+            pass
+        elif optimizations is SkipGramOptimizations.hierarchical_softmax:
+            pass
 
         # Initialize model parameters
         self.V = vocab_size
@@ -16,6 +32,12 @@ class SkipGram():
         self.W_prime = np.random.randn(self.N, self.V)
 
     def train(self, sentence, learning_rate=0.025):
+        self.train_fun(sentence, learning_rate)
+
+    def compute_LL(self, sentences):
+        self.compute_LL_fun(sentences)
+
+    def __train_plain(self, sentence, learning_rate):
         eta = learning_rate
         for center_word, context in create_context_windows(sentence, self.C): 
 
@@ -48,7 +70,7 @@ class SkipGram():
             # Update input->hidden matrix
             self.W[center_word, :] -= eta * EH
 
-    def compute_LL(self, sentences):
+    def __compute_LL_plain(self, sentences):
         LL = 0
         for sentence in sentences:
             for center_word, context in create_context_windows(sentence, \
