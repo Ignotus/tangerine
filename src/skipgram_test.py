@@ -1,42 +1,74 @@
-#!/usr/bin/env python3
-import itertools
-from skipgram import SkipGram
+from skipgram import SkipGram, SkipGramOptimizations
 from utils import read_vocabulary, tokenize_files
 from timeit import default_timer as timer
 
-# Use preprocessed data from: 
-# http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz
-# Contains one sentence tokenized per newline
+# Datasets
+VOCAB_FILE   = "../data/skipgram/vocab_1M.txt"
+TRAINING_DIR = "../data/skipgram/hyperparameters/training/"
+TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
 
-MAX_VOCAB_SIZE = 5000
-MAX_SENTENCES = 1000
-NUM_ITER = 5
-HIDDEN_LAYER_SIZE = 20
-WINDOW_SIZE = 2
+# External parameters
+OPTIMIZATIONS   = SkipGramOptimizations.none
+NUM_EPOCHS      = 1
+MIN_OCCURRENCES = 5
 
-def testSkipGram(vocabulary_file, training_dir):
-    last_sentence = None
-    print("Reading vocabulary " + vocabulary_file + "...")
-    words, dictionary = read_vocabulary(vocabulary_file, MAX_VOCAB_SIZE)
-    print("Reading sentences and training SkipGram...")
+# Internal parameters
+HIDDEN_LAYER_SIZE = 100
+WINDOW_SIZE       = 4
+LEARNING_RATE     = 0.025
+
+
+def test_skip_gram():
+    print_parameters()
+
+    # Read the vocabulary
+    print("Reading vocabulary " + VOCAB_FILE + "...")
+    words, dictionary = read_vocabulary(VOCAB_FILE, max_size=None, 
+            min_count=MIN_OCCURRENCES)
+    vocab_size = len(words)
+    print("Read vocabulary, size: " + str(vocab_size))
+
+    # Create the SkipGram model, start the timer
     start = timer()
-    skip_gram = SkipGram(len(words), WINDOW_SIZE, HIDDEN_LAYER_SIZE)
-    num_words = 0
-    for i in range(NUM_ITER):
-        sentences = tokenize_files(dictionary, training_dir)    
-        for sentence in itertools.islice(sentences, MAX_SENTENCES):
-            last_sentence = sentence
-            skip_gram.train(sentence)
-            num_words += len(sentence)
+    skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
+            hidden_layer_size=HIDDEN_LAYER_SIZE, optimizations=OPTIMIZATIONS)
 
-        ll = skip_gram.train(last_sentence, compute_ll=True)
-        print("Iteration " + str(i + 1) + "/" + str(NUM_ITER) + " finished (" + str(num_words) + " words)")
-        print("Log-likelihood: " + str(ll))
-
+    # Do several training epochs over our training data
+    for i in range(NUM_EPOCHS):
         num_words = 0
 
-    print("- Took %.2f sec" % (timer() - start))
+        # Go over the entire training dataset
+        for sentence in tokenize_files(dictionary, TRAINING_DIR):
+            skip_gram.train(sentence, learning_rate=LEARNING_RATE)
+            num_words += len(sentence)
+
+        # Print a status update
+        print("Trained epoch #" + str(i + 1) + "/" + str(NUM_EPOCHS) + \
+                ", processed " + str(num_words) + " words")
+
+        # Measure the log-likelihood
+        LL = skip_gram.compute_LL(tokenize_files(dictionary, TESTING_DIR))
+        print("The log-likelihood after this epoch is " + str(LL))
+
+    # Report the performance results
+    print("Training finished, took %.2f seconds\n" % (timer() - start))
+
+
+
+def print_parameters():
+    print("============================================================")
+    print("Vocabulary file:    " + VOCAB_FILE)
+    print("Training directory: " + TRAINING_DIR)
+    print("Testing directory:  " + TESTING_DIR + "\n")
+
+    print("Number of epochs:         " + str(NUM_EPOCHS))
+    print("Minimum word occurrences: " + str(MIN_OCCURRENCES) + "\n")
+
+    print("Hidden layer size: " + str(HIDDEN_LAYER_SIZE))
+    print("Window size:       " + str(WINDOW_SIZE))
+    print("Learning rate:     " + str(LEARNING_RATE))
+    print("============================================================\n")
 
 if __name__ == '__main__':
-    testSkipGram("../data/vocabulary/20k.txt", "../data/training/small_1M")
+    test_skip_gram()
    

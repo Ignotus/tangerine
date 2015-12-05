@@ -57,3 +57,9 @@ def writeVocabulary(vocab, output_file,sep=' '):
     with open(output_file, 'w') as f:
         f.write("\n".join([sep.join((word[0],str(word[1]))) for word in vocab.most_common()]))
     print("Vocabulary written to " + output_file)
+
+
+def writeWordVectors(wordVecs, filename):
+    with open(filename, 'w') as output_file:
+        for i, wordVec in enumerate(wordVecs):
+            output_file.write(wordVec[0] + " " + " ".join(str(f) for f in wordVec[1])+"\n")
