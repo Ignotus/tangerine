@@ -26,7 +26,7 @@ def write_vectors(words, rnn, filename):
     with open(filename, 'w') as output_file:
         for i, word in enumerate(words):
             vec = rnn.word_representation_inner(i)
-            output_file.write(word[0] + " " + " ".join(str(f) for f in vec))
+            output_file.write(word[0] + " " + " ".join(str(f) for f in vec) + "\n")
 
 def debug_sentence(words, sentence):
 	print(" ".join(words[index][0] for index in sentence))
