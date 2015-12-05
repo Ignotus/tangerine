@@ -26,17 +26,17 @@ word_vectors_file='../word_vectors/input_cbow_1M.txt'
 
 
 ###### PARAMETERS ######
-C = 5  # window size
+C = 10  # window size
 n = 100  # the number of components in the hidden layer
 
 
 ALPHA=0.11 # the learning rate. !Set it to None to run the parameters tuning
 
-EPOCHS = 3
+EPOCHS = 1
 MAX_VOCAB_SIZE = 500000000000 # use all
 MAX_SENTENCES = 50000000000000  # use all
 MAX_LL_SENTENCES = 5000000000
-DEBUG=1 # change to 0 to switch off, to 1 to switch on print messages
+DEBUG=0 # change to 0 to switch off, to 1 to switch on print messages
 SM_OPTIMIZATION= CBOWSMOpt.hierarchical_softmax
 LR_OPTIMIZATION= CBOWLROpt.none
 
