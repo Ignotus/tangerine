@@ -45,8 +45,12 @@ class CBOW:
         self.alpha = alpha  # used by pure SGD
         self.dim = dim
         self.C = C
-        self.V = np.ones((self.v, self.dim))
-        self.W = np.ones((self.dim, self.v))
+        #self.V = #np.zeros((self.v, self.dim))
+        self.V = np.random.uniform(low=-0.5/dim, high=0.5/dim, size=(self.v, dim))
+
+        #self.W = np.zeros((self.dim, self.v))
+        self.W=np.zeros(shape=(dim,self.v))
+
 
 
     def train(self, sent):
