@@ -60,7 +60,7 @@ def tokenize_files(vocab_dict, datafolder, remove_stopwords=False, subsample_fre
                 words = [word if word in vocab_dict else IGNORED_TOKEN for word in words]
                 # Yield the sentence as indices
                 if words:
-                    yield [vocab_dict[word][0] for word in words if vocab_dict[word]]
+                    yield [vocab_dict.get(word)[0] for word in words if vocab_dict.get(word)]
 
 def parse_word(string):
     parts = string.strip().split()

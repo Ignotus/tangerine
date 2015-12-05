@@ -27,7 +27,7 @@ def read_vocabulary(filename, maxsize,sep=' '):
             splt=word.split(sep)
             index_to_word.append(VocabItem(splt[0],int(splt[1].strip())))
     index_to_word.append(VocabItem(IGNORED_TOKEN,0))
-    word_to_index = dict([ (w.word, (i, w.count)) for i, w in enumerate(index_to_word)])
+    word_to_index = dict([(w.word, (i, w.count)) for i, w in enumerate(index_to_word)])
     return index_to_word, word_to_index
 
 

@@ -67,6 +67,9 @@ class CBOW:
                 LL += np.log(hsm(self.vocab[t], h, self.W))
         return LL
 
+    # selects the learning rate on a subsample
+    def selectLR(self,):
+
 
 
 
