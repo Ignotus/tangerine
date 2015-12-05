@@ -24,6 +24,9 @@ class RNNExtended:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
+    def export(self, file_path):
+        np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.X, self.s, self.deriv_s)
+
     def word_representation_inner(self, word_idx):
         return self.U[:, word_idx]
 
@@ -38,7 +41,6 @@ class RNNExtended:
             hX[idx] = self.U[:,xi]
 
         h = sigmoid(hX[:-1] + self.s[1].dot(self.W))
-        print(h)
         log_q = h.dot(self.V.T)
         a = np.max(log_q, axis=1)
         log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))

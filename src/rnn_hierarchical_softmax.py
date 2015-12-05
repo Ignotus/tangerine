@@ -25,6 +25,9 @@ class RNNHSoftmax:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
+    def export(self, file_path):
+        np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.s, self.deriv_s)
+
     # Hierarchical softmax doesn't have outer word representation
     def word_representation_inner(self, word_idx):
         return self.U[:, word_idx]
