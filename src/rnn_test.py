@@ -19,7 +19,7 @@ from timeit import default_timer as timer
 # Contains one sentence tokenized per newline
 
 MIN_WORD_COUNT=5
-MAX_SENTENCES = 8000
+MAX_SENTENCES = 8000000000 # use all
 MAX_LIKELIHOOD_SENTENCES = 1000
 
 def write_vectors(words, rnn, filename):
@@ -58,10 +58,10 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     
     num_words = 0
-    testing_sentences = tokenize_files(dictionary, testing_dir)
+    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
     for i in range(args.iter):
-        sentences = tokenize_files(dictionary, training_dir)
+        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             rnn.train(sentence)
             num_words += len(sentence)
@@ -101,5 +101,5 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit()
 
-    testRNN(args, "data/vocabulary/small.txt", "hyperparameters/training/", "hyperparameters/test/")
+    testRNN(args, "../data/vocabulary/vocab_1M.txt", "../data/1M/training", "../data/1M/test/")
 

@@ -11,7 +11,7 @@ import profile
 
 
 ###### DATASETS ######
-train_dir = '../data/training/small_1M'
+train_dir = '../data/1M/training'
 vocab_file = '../data/vocabulary/vocab_1M.txt'
 
 
@@ -29,10 +29,11 @@ word_vectors_file='../word_vectors/input_cbow_1M.txt'
 C = 10  # window size
 n = 100  # the number of components in the hidden layer
 
-
 ALPHA=0.31 # the learning rate. !Set it to None to run the parameters tuning
 
 EPOCHS = 1
+
+MIN_WORD_COUNT = 5
 MAX_VOCAB_SIZE = 5000000000000 # use all
 MAX_SENTENCES = 50000000000000  # use all
 MAX_LL_SENTENCES = 5000000000
@@ -96,7 +97,7 @@ def tuneLR():
 def run():
 
     print("Reading vocabulary " + vocab_file + "...")
-    index_to_word, word_to_index = read_vocabulary(vocab_file, MAX_VOCAB_SIZE)
+    index_to_word, word_to_index = read_vocabulary(vocab_file, min_count=MIN_WORD_COUNT)
     print("Reading sentences and training CBOW ...")
 
     # for performance plots
@@ -114,8 +115,8 @@ def run():
     ######## TRAINING ########
     print('----------STARTING TRAINING -----------')
     for i in range(0, EPOCHS):
-        sentences1 = tokenize_files(word_to_index, train_dir)
-        sentences2 = tokenize_files(word_to_index, train_dir)  # for LL
+        sentences1 = tokenize_files(word_to_index, train_dir, subsample_frequent=True)
+        sentences2 = tokenize_files(word_to_index, train_dir, subsample_frequent=True)  # for LL
 
         if(DEBUG==1):
             ERROR.append(myCbow.computeLL(itertools.islice(sentences1, MAX_LL_SENTENCES)))
