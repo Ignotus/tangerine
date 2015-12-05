@@ -20,6 +20,9 @@ class RNN:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
+    def export(self, file_path):
+        np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.s, self.deriv_s)
+
     def word_representation_outer(self, word_idx):
         return self.V[word_idx, :]
 
