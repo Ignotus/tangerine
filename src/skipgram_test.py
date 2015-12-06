@@ -1,5 +1,6 @@
 from skipgram import SkipGram, SkipGramOptimizations
-from utils import read_vocabulary, tokenize_files
+from utils import tokenize_files
+from cbow_utils import read_vocabulary
 from timeit import default_timer as timer
 
 # Datasets
@@ -8,8 +9,8 @@ TRAINING_DIR = "../data/skipgram/hyperparameters/training/"
 TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
 
 # External parameters
-OPTIMIZATIONS   = SkipGramOptimizations.none
-NUM_EPOCHS      = 1
+OPTIMIZATIONS   = SkipGramOptimizations.hierarchical_softmax
+NUM_EPOCHS      = 3
 MIN_OCCURRENCES = 5
 
 # Internal parameters
@@ -17,27 +18,31 @@ HIDDEN_LAYER_SIZE = 100
 WINDOW_SIZE       = 4
 LEARNING_RATE     = 0.025
 
+learning_rates = [0.01, 0.05, 0.1, 0.3, 0.5, 0.9, 1.5, 2.0]
+
 
 def test_skip_gram():
     print_parameters()
 
     # Read the vocabulary
     print("Reading vocabulary " + VOCAB_FILE + "...")
-    words, dictionary = read_vocabulary(VOCAB_FILE, max_size=None, 
-            min_count=MIN_OCCURRENCES)
+    words, dictionary = read_vocabulary(VOCAB_FILE, 50000000000)
+            # max_size=None, 
+            # min_count=MIN_OCCURRENCES)
     vocab_size = len(words)
     print("Read vocabulary, size: " + str(vocab_size))
 
     # Create the SkipGram model, start the timer
     start = timer()
     skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
-            hidden_layer_size=HIDDEN_LAYER_SIZE, optimizations=OPTIMIZATIONS)
+            hidden_layer_size=HIDDEN_LAYER_SIZE, optimizations=OPTIMIZATIONS,
+            vocab=words)
 
     # Do several training epochs over our training data
     for i in range(NUM_EPOCHS):
         start_epoch = timer()
         num_words = 0
-
+        
         # Go over the entire training dataset
         for sentence in tokenize_files(dictionary, TRAINING_DIR):
             skip_gram.train(sentence, learning_rate=LEARNING_RATE)
@@ -46,7 +51,7 @@ def test_skip_gram():
         # Print a status update
         print("Trained epoch #" + str(i + 1) + "/" + str(NUM_EPOCHS) + \
                 ", processed " + str(num_words) + " words" + \
-                ", took %.02f seconds.", (timer() - start_epoch))
+                ", took %.02f seconds." % (timer() - start_epoch))
 
         # Measure the log-likelihood
         LL = skip_gram.compute_LL(tokenize_files(dictionary, TESTING_DIR))

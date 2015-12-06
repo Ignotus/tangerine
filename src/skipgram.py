@@ -1,6 +1,8 @@
 import numpy as np
 from enum import Enum
+from scipy.special import expit
 from utils import create_context_windows
+from h_softmax import encode_huffman
 
 class SkipGramOptimizations(Enum):
     none                 = 1
@@ -11,7 +13,7 @@ class SkipGramOptimizations(Enum):
 class SkipGram():
 
     def __init__(self, vocab_size, optimizations=SkipGramOptimizations.none, \
-                window_size=4, hidden_layer_size=100):
+                window_size=4, hidden_layer_size=100, vocab=None):
 
         # Set the correct training and log-likelihood functions
         if optimizations is SkipGramOptimizations.none:
@@ -20,7 +22,13 @@ class SkipGram():
         elif optimizations is SkipGramOptimizations.negative_sampling:
             pass
         elif optimizations is SkipGramOptimizations.hierarchical_softmax:
-            pass
+            if vocab is None:
+                raise Exception("Vocabulary is None.")
+
+            self.vocabulary = vocab
+            encode_huffman(self.vocabulary)
+            self.train_fun = self.__train_hierarchical_softmax
+            self.compute_LL_fun = self.__compute_LL_hierarchical_softmax
 
         # Initialize model parameters
         self.V = vocab_size
@@ -37,8 +45,54 @@ class SkipGram():
     def compute_LL(self, sentences):
         return self.compute_LL_fun(sentences)
 
-    def __train_plain(self, sentence, learning_rate):
-        eta = learning_rate
+    def __train_hierarchical_softmax(self, sentence, eta):
+        for center_word, context in create_context_windows(sentence, self.C): 
+
+            # Retrieve the input vector for the center word
+            h = self.W[center_word, :]
+            EH = np.zeros(self.N)
+
+            # Update the output matrix for every context word
+            for context_word in context:
+                path = zip(self.vocabulary[context_word].path,  
+                        self.vocabulary[context_word].code)
+
+                # Go through every inner node in the path to the context word
+                for inner_node, is_left_child in path:
+                    e = expit(np.dot(h, self.W_prime[:, inner_node])) -  \
+                            is_left_child
+                    EH += e * self.W_prime[:, inner_node]
+
+                    # Update the hidden->output matrix
+                    self.W_prime[:, inner_node] -= eta * e * h
+
+            # Update input->hidden matrix
+            self.W[center_word, :] -= eta * EH
+
+    def __compute_LL_hierarchical_softmax(self, sentences):
+        LL = 0
+        for sentence in sentences:
+            for center_word, context in create_context_windows(sentence, \
+                    self.C):
+
+                # Retrieve the input vector for the center word
+                h = self.W[center_word, :]
+
+                # Sum the log probabilities for all context words
+                for context_word in context:
+                    path = zip(self.vocabulary[context_word].path,  
+                            self.vocabulary[context_word].code)
+
+                    # Go through every inner node in the path to the context
+                    # word
+                    for inner_node, is_left_child in path:
+                        sign = -1 if bool(is_left_child) else 1
+                        LL += np.log(expit(sign * np.dot(h, self.W_prime[:, 
+                                inner_node])))
+
+        return LL
+
+    def __train_plain(self, sentence, eta):
         for center_word, context in create_context_windows(sentence, self.C): 
 
             # Retrieve the input vector for the center word
@@ -90,4 +144,3 @@ class SkipGram():
                 LL -= self.C * np.log(np.sum(np.exp(u)))
 
         return LL
-
