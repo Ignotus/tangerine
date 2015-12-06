@@ -12,18 +12,19 @@ class SkipGramOptimizations(Enum):
 # Notation used from: word2vec Parameter Learning Explained - Xin Rong
 class SkipGram():
 
-    def __init__(self, vocab_size, optimizations=SkipGramOptimizations.none, \
+    def __init__(self, vocab_size, optimization=SkipGramOptimizations.none, \
                 window_size=4, hidden_layer_size=100, vocab=None, \
                 num_negative_samples=10):
 
         # Set the correct training and log-likelihood functions
-        if optimizations is SkipGramOptimizations.none:
+        self.optimization = optimization
+        if optimization is SkipGramOptimizations.none:
             self.train_fun = self.__train_plain
             self.compute_LL_fun = self.__compute_LL_plain
-        elif optimizations is SkipGramOptimizations.negative_sampling:
+        elif optimization is SkipGramOptimizations.negative_sampling:
             self.train_fun = self.__train_negative_sampling
             self.compute_LL_fun = self.__compute_LL_negative_sampling
-        elif optimizations is SkipGramOptimizations.hierarchical_softmax:
+        elif optimization is SkipGramOptimizations.hierarchical_softmax:
             if vocab is None:
                 raise Exception("Vocabulary is None.")
 
@@ -46,6 +47,24 @@ class SkipGram():
 
     def compute_LL(self, sentences):
         return self.compute_LL_fun(sentences)
+
+    def store_word_vectors(self, words, location, name):
+        filename = name + "_input.txt"
+        print("Storing input vector representations in " + filename)
+        with open(filename, 'w') as output_file:
+            for i, word in enumerate(words):
+                vec = self.W[i, :]
+                output_file.write(word[0] + " " + \
+                        " ".join(str(f) for f in vec) + "\n")
+
+        if self.optimization != SkipGramOptimizations.hierarchical_softmax:
+            filename = name + "_output.txt"
+            print("Storing output vector representations in " + filename)
+            with open(filename, 'w') as output_file:
+                for i, word in enumerate(words):
+                    vec = self.W_prime[:, i]
+                    output_file.write(word[0] + " " + \
+                            " ".join(str(f) for f in vec) + "\n")
 
     def __train_hierarchical_softmax(self, sentence, eta):
         for center_word, context in create_context_windows(sentence, self.C): 

@@ -3,12 +3,14 @@ from utils import tokenize_files, read_vocabulary
 from timeit import default_timer as timer
 
 # Datasets
-VOCAB_FILE   = "../data/skipgram/hyperparams_vocab.txt"
-TRAINING_DIR = "../data/skipgram/hyperparameters/training/"
-TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
+VOCAB_FILE      = "../data/skipgram/hyperparams_vocab.txt"
+TRAINING_DIR    = "../data/skipgram/hyperparameters/training/"
+TESTING_DIR     = "../data/skipgram/hyperparameters/test/"
+OUTPUT_LOCATION = "./"
+OUTPUT_NAME     = "skipgram_vectors"
 
 # External parameters
-OPTIMIZATIONS   = SkipGramOptimizations.hierarchical_softmax
+OPTIMIZATION    = SkipGramOptimizations.hierarchical_softmax
 NUM_EPOCHS      = 1
 MIN_OCCURRENCES = 5
 SUBSAMPLE       = True
@@ -31,7 +33,7 @@ def test_skip_gram():
     # Create the SkipGram model, start the timer
     start = timer()
     skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
-            hidden_layer_size=HIDDEN_LAYER_SIZE, optimizations=OPTIMIZATIONS,
+            hidden_layer_size=HIDDEN_LAYER_SIZE, optimization=OPTIMIZATION,
             vocab=words)
 
     # Do several training epochs over our training data
@@ -55,9 +57,10 @@ def test_skip_gram():
         print("The log-likelihood after this epoch is " + str(LL))
 
     # Report the performance results
-    print("Training finished, took %.2f seconds\n" % (timer() - start))
+    print("Training finished, took %.2f seconds" % (timer() - start))
 
-
+    # Store the vector representations
+    skip_gram.store_word_vectors(words, OUTPUT_LOCATION, OUTPUT_NAME)
 
 def print_parameters():
     print("============================================================")
