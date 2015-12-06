@@ -14,7 +14,7 @@ class SkipGram():
 
     def __init__(self, vocab_size, optimization=SkipGramOptimizations.none, \
                 window_size=4, hidden_layer_size=100, vocab=None, \
-                num_negative_samples=10):
+                num_negative_samples=5):
 
         # Set the correct training and log-likelihood functions
         self.optimization = optimization
@@ -68,10 +68,10 @@ class SkipGram():
 
     def __train_hierarchical_softmax(self, sentence, eta):
         for center_word, context in create_context_windows(sentence, self.C): 
+            EH = np.zeros(self.N)
 
             # Retrieve the input vector for the center word
             h = self.W[center_word, :]
-            EH = np.zeros(self.N)
 
             # Update the output matrix for every context word
             for context_word in context:
@@ -115,40 +115,56 @@ class SkipGram():
 
     def __train_negative_sampling(self, sentence, eta):
         for center_word, context in create_context_windows(sentence, self.C): 
+            EH = np.zeros(self.N)
 
             # Retrieve the input vector for the center word
             h = self.W[center_word, :]
 
-            # Draw K negative samples (TODO unigram distribution)
-            negative_samples = np.random.randint(0, self.V, self.K)
-            positive_sample = center_word
+            # Update the hidden->output matrix for each context word
+            for context_word in context:
 
-            # Calculate the net input scores for all samples ([u_1, ..., u_K+1])
-            u = np.zeros(self.K + 1)
-            for j in range(self.K):
-                u[j] = np.dot(h, self.W_prime[:, negative_samples[j]])
-            u[self.K] = np.dot(h, self.W_prime[:, positive_sample])
+                # Update the hidden->output matrix for the positive sample
+                e = expit(np.dot(self.W_prime[:, context_word], h)) - 1.0
+                EH += e * self.W_prime[:, context_word]
+                self.W_prime[:, context_word] -= eta *  e * h
 
-            # Calculate the output values for all samples
-            y = expit(u)
+                # Draw K negative samples (TODO unigram)
+                negative_samples = np.random.randint(0, self.V, self.K)
 
-            # Calculate the summed prediction errors
-            EI = np.zeros(self.K + 1)
-            for j in range(self.K):
-                for c in context:
-                    EI[j] += (y[j] - (c == negative_samples[j]))
+                # Update the hidden->output matrix for each negative sample
+                for ns in negative_samples:
+                    e = expit(np.dot(self.W_prime[:, ns], h))
+                    EH += e * self.W_prime[:, ns]
+                    self.W_prime[:, ns] -= eta *  e * h
 
-            # Calculate the summed prediction error for the positive sample
-            for c in context:
-                EI[self.K] += (y[self.K] - (c == center_word))
-
-            # Update the hidden->ouput matrix for the negative samples
-            for j in range(self.K):
-                pass
-
+            # Update the input->hidden matrix
+            self.W[center_word, :] -= eta * EH
 
     def __compute_LL_negative_sampling(self, sentences):
-        pass
+        LL = 0
+        for sentence in sentences:
+            for center_word, context in create_context_windows(sentence, \
+                    self.C):
+
+                # Retrieve the input vector for the center word
+                h = self.W[center_word, :]
+
+                # Sum the log probabilities for all context words
+                for context_word in context:
+
+                    # Update the log-likelihood for the positive sample
+                    LL += np.log(expit(np.dot(self.W_prime[:, context_word], \
+                            h)))
+
+                    # Draw K negative samples (TODO unigram)
+                    negative_samples = np.random.randint(0, self.V, self.K)
+
+                    # Update the log-likelihood for all the negative samples
+                    for ns in negative_samples:
+                        LL += np.log(expit(np.dot(-1.0 * self.W_prime[:, ns], \
+                                h)))
+
+        return LL
 
     def __train_plain(self, sentence, eta):
         for center_word, context in create_context_windows(sentence, self.C): 

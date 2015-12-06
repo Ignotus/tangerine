@@ -6,19 +6,20 @@ from timeit import default_timer as timer
 VOCAB_FILE      = "../data/skipgram/hyperparams_vocab.txt"
 TRAINING_DIR    = "../data/skipgram/hyperparameters/training/"
 TESTING_DIR     = "../data/skipgram/hyperparameters/test/"
-OUTPUT_LOCATION = "./"
+OUTPUT_LOCATION = "./out/"
 OUTPUT_NAME     = "skipgram_vectors"
 
 # External parameters
-OPTIMIZATION    = SkipGramOptimizations.hierarchical_softmax
-NUM_EPOCHS      = 1
+OPTIMIZATION    = SkipGramOptimizations.negative_sampling
+NUM_EPOCHS      = 3
 MIN_OCCURRENCES = 5
 SUBSAMPLE       = True
 
 # Internal parameters
-HIDDEN_LAYER_SIZE = 100
-WINDOW_SIZE       = 4
-LEARNING_RATE     = 0.03
+HIDDEN_LAYER_SIZE    = 100
+WINDOW_SIZE          = 4
+LEARNING_RATE        = 0.03
+NUM_NEGATIVE_SAMPLES = 5
 
 def test_skip_gram():
     print_parameters()
@@ -34,7 +35,7 @@ def test_skip_gram():
     start = timer()
     skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
             hidden_layer_size=HIDDEN_LAYER_SIZE, optimization=OPTIMIZATION,
-            vocab=words)
+            vocab=words, num_negative_samples=NUM_NEGATIVE_SAMPLES)
 
     # Do several training epochs over our training data
     for i in range(NUM_EPOCHS):
@@ -75,9 +76,10 @@ def print_parameters():
     print("Minimum word occurrences: " + str(MIN_OCCURRENCES))
     print("Subsampling enabled:      " + str(SUBSAMPLE) + "\n")
 
-    print("Hidden layer size: " + str(HIDDEN_LAYER_SIZE))
-    print("Window size:       " + str(WINDOW_SIZE))
-    print("Learning rate:     " + str(LEARNING_RATE))
+    print("Hidden layer size:          " + str(HIDDEN_LAYER_SIZE))
+    print("Window size:                " + str(WINDOW_SIZE))
+    print("Learning rate:              " + str(LEARNING_RATE))
+    print("Number of negative samples: " + str(NUM_NEGATIVE_SAMPLES))
     print("============================================================\n")
 
 if __name__ == '__main__':
