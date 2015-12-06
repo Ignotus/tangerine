@@ -169,7 +169,7 @@ class SkipGram():
             for c in context:
                 t = np.zeros(self.V)
                 t[c] = 1
-                e = (self.C * y) - t 
+                e = (2 * self.C * y) - t 
                 EI += e
 
             # Update hidden->output matrix
@@ -199,6 +199,6 @@ class SkipGram():
                     LL += u[c]
 
                 # Add the second term of the log-likelihood
-                LL -= self.C * np.log(np.sum(np.exp(u)))
+                LL -= 2 * self.C * np.log(np.sum(np.exp(u)))
 
         return LL
