@@ -1,6 +1,5 @@
 from skipgram import SkipGram, SkipGramOptimizations
-from utils import tokenize_files
-from cbow_utils import read_vocabulary
+from utils import tokenize_files, read_vocabulary
 from timeit import default_timer as timer
 
 # Datasets
@@ -10,8 +9,9 @@ TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
 
 # External parameters
 OPTIMIZATIONS   = SkipGramOptimizations.hierarchical_softmax
-NUM_EPOCHS      = 3
+NUM_EPOCHS      = 1
 MIN_OCCURRENCES = 5
+SUBSAMPLE       = True
 
 # Internal parameters
 HIDDEN_LAYER_SIZE = 100
@@ -23,9 +23,8 @@ def test_skip_gram():
 
     # Read the vocabulary
     print("Reading vocabulary " + VOCAB_FILE + "...")
-    words, dictionary = read_vocabulary(VOCAB_FILE, 50000000000)
-            # max_size=None, 
-            # min_count=MIN_OCCURRENCES)
+    words, dictionary = read_vocabulary(VOCAB_FILE, max_size=None, 
+            min_count=MIN_OCCURRENCES)
     vocab_size = len(words)
     print("Read vocabulary, size: " + str(vocab_size))
 
@@ -41,7 +40,8 @@ def test_skip_gram():
         num_words = 0
         
         # Go over the entire training dataset
-        for sentence in tokenize_files(dictionary, TRAINING_DIR):
+        for sentence in tokenize_files(dictionary, TRAINING_DIR, \
+                subsample_frequent=SUBSAMPLE):
             skip_gram.train(sentence, learning_rate=LEARNING_RATE)
             num_words += len(sentence)
 
