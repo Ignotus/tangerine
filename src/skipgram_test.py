@@ -66,10 +66,14 @@ def print_parameters():
     print("============================================================")
     print("Vocabulary file:    " + VOCAB_FILE)
     print("Training directory: " + TRAINING_DIR)
-    print("Testing directory:  " + TESTING_DIR + "\n")
+    print("Testing directory:  " + TESTING_DIR)
+    print("Output directory:   " + OUTPUT_LOCATION)
+    print("Output name prefix: " + OUTPUT_NAME + "\n")
 
+    print("Optimizations:            " + str(OPTIMIZATION.name))
     print("Number of epochs:         " + str(NUM_EPOCHS))
-    print("Minimum word occurrences: " + str(MIN_OCCURRENCES) + "\n")
+    print("Minimum word occurrences: " + str(MIN_OCCURRENCES))
+    print("Subsampling enabled:      " + str(SUBSAMPLE) + "\n")
 
     print("Hidden layer size: " + str(HIDDEN_LAYER_SIZE))
     print("Window size:       " + str(WINDOW_SIZE))
