@@ -14,10 +14,10 @@ SUBSAMPLING_THRESHOLD = 10e-5
 
 # Sub-sampling of frequent words: can improve both accuracy and speed for large data sets 
 # Source: "Distributed Representations of Words and Phrases and their Compositionality"
-def remove_with_prob(word, vocab_dict, total_wordcount):
+def allow_with_prob(word, vocab_dict, total_wordcount):
     freq = float(vocab_dict[word][1]) / total_wordcount
     removal_prob = 1.0 - np.sqrt(SUBSAMPLING_THRESHOLD / freq)
-    return np.random.random_sample() < removal_prob
+    return np.random.random_sample() > removal_prob
 
 def allow_word(word, vocab_dict, total_wordcount, subsample_frequent):
     allow = word.isalnum()
@@ -28,7 +28,8 @@ def allow_word(word, vocab_dict, total_wordcount, subsample_frequent):
         return True # Will be replaced with IGNORED_TOKEN
 
     if subsample_frequent:
-        allow = remove_with_prob(word, vocab_dict, total_wordcount)
+        allow = allow_with_prob(word, vocab_dict, total_wordcount)
+
     if not allow:
         return False
 

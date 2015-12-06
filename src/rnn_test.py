@@ -19,14 +19,14 @@ from timeit import default_timer as timer
 # Contains one sentence tokenized per newline
 
 MIN_WORD_COUNT=5
-MAX_SENTENCES = 8000
+MAX_SENTENCES = 8000000000 # use all
 MAX_LIKELIHOOD_SENTENCES = 1000
 
 def write_vectors(words, rnn, filename):
     with open(filename, 'w') as output_file:
         for i, word in enumerate(words):
-            vec = rnn.word_representation(i)
-            output_file.write(word[0] + " " + " ".join(str(f) for f in vec))
+            vec = rnn.word_representation_inner(i)
+            output_file.write(word[0] + " " + " ".join(str(f) for f in vec) + "\n")
 
 def debug_sentence(words, sentence):
 	print(" ".join(words[index][0] for index in sentence))
@@ -58,10 +58,10 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     
     num_words = 0
-    testing_sentences = tokenize_files(dictionary, testing_dir)
+    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
     for i in range(args.iter):
-        sentences = tokenize_files(dictionary, training_dir)
+        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             rnn.train(sentence)
             num_words += len(sentence)
@@ -75,6 +75,9 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     if args.export_file:
     	print("- Writing vectors to file " + args.export_file + "...")
     	write_vectors(words, rnn, args.export_file)
+
+    if args.export_weights:
+        rnn.export(args.export_weights)
 
 if __name__ == '__main__':
     DESCRIPTION = """
@@ -91,11 +94,12 @@ if __name__ == '__main__':
     parser.add_argument('--maxgrad', default=0.01, help='Gradient clipping threshold (is used only with ReLU models)', type=float)
     parser.add_argument('--class_size', default=10000, help='Class size (is used only with RNNExtended models)', type=int)
     parser.add_argument('--export_file', default=None, help='File to which vectors are written', type=str)
+    parser.add_argument('--export_weights', default=None, help='File to which RNN weights are exported', type=str)
 
     args = parser.parse_args()
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit()
 
-    testRNN(args, "../data/vocabulary/small.txt", "hyperparameters/training/", "hyperparameters/test/")
+    testRNN(args, "../data/vocabulary/vocab_1M.txt", "../data/1M/training", "../data/1M/test/")
 
