@@ -4,7 +4,7 @@ from cbow_utils import read_vocabulary
 from timeit import default_timer as timer
 
 # Datasets
-VOCAB_FILE   = "../data/skipgram/vocab_1M.txt"
+VOCAB_FILE   = "../data/skipgram/hyperparams_vocab.txt"
 TRAINING_DIR = "../data/skipgram/hyperparameters/training/"
 TESTING_DIR  = "../data/skipgram/hyperparameters/test/"
 
@@ -16,10 +16,7 @@ MIN_OCCURRENCES = 5
 # Internal parameters
 HIDDEN_LAYER_SIZE = 100
 WINDOW_SIZE       = 4
-LEARNING_RATE     = 0.025
-
-learning_rates = [0.01, 0.05, 0.1, 0.3, 0.5, 0.9, 1.5, 2.0]
-
+LEARNING_RATE     = 0.03
 
 def test_skip_gram():
     print_parameters()
