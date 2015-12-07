@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 VOCAB_FILE      = "../data/skipgram/hyperparams_vocab.txt"
 TRAINING_DIR    = "../data/skipgram/hyperparameters/training/"
 TESTING_DIR     = "../data/skipgram/hyperparameters/test/"
-OUTPUT_LOCATION = "./out/"
+OUTPUT_LOCATION = "./out"
 OUTPUT_NAME     = "skipgram_vectors"
 
 # External parameters

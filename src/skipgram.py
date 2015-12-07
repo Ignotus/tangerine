@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from enum import Enum
 from scipy.special import expit
 from utils import create_context_windows, index2word_to_VocabItems
@@ -61,7 +62,7 @@ class SkipGram():
         return self.compute_LL_fun(sentences)
 
     def store_word_vectors(self, words, location, name):
-        filename = name + "_input.txt"
+        filename = location + os.sep + name + "_input.txt"
         print("Storing input vector representations in " + filename)
         with open(filename, 'w') as output_file:
             for i, word in enumerate(words):
@@ -70,7 +71,7 @@ class SkipGram():
                         " ".join(str(f) for f in vec) + "\n")
 
         if self.optimization != SkipGramOptimizations.hierarchical_softmax:
-            filename = name + "_output.txt"
+            filename = location + os.sep + name + "_output.txt"
             print("Storing output vector representations in " + filename)
             with open(filename, 'w') as output_file:
                 for i, word in enumerate(words):
