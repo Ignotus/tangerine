@@ -57,7 +57,7 @@ class RNNHSoftmax:
         """
         return sum([self._sentence_log_likelihood(Xi) for Xi in Xii])
 
-    def train(self, Xi, lr=0.1):
+    def train(self, Xi, lr=0.005):
         err_hidden = np.empty((self.ntime - 1, self.H))
         for xi, di in zip(Xi, Xi[1:]):
             self.s[1:] = self.s[:-1]
