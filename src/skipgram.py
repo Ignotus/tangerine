@@ -10,12 +10,17 @@ class SkipGramOptimizations(Enum):
     negative_sampling    = 2
     hierarchical_softmax = 3
 
+class SampleMode(Enum):
+    uniform = 1
+    unigram = 2
+
 # Notation used from: word2vec Parameter Learning Explained - Xin Rong
 class SkipGram():
 
     def __init__(self, vocab_size, optimization=SkipGramOptimizations.none, \
                 window_size=4, hidden_layer_size=100, vocab=None, \
-                num_negative_samples=5, unigram_power=0.75):
+                num_negative_samples=5, unigram_power=0.75, \
+                sample_mode=SampleMode.unigram):
 
         # Set the correct training and log-likelihood functions
         self.optimization = optimization
@@ -26,7 +31,9 @@ class SkipGram():
             if vocab is None:
                 raise Exception("Vocabulary is None.")
 
-            self.unigram = UnigramDistribution(vocab, unigram_power)
+            self.sample_mode = sample_mode
+            if sample_mode is SampleMode.unigram:
+                self.unigram = UnigramDistribution(vocab, unigram_power)
             self.train_fun = self.__train_negative_sampling
             self.compute_LL_fun = self.__compute_LL_negative_sampling
         elif optimization is SkipGramOptimizations.hierarchical_softmax:
@@ -134,7 +141,7 @@ class SkipGram():
                 self.W_prime[:, context_word] -= eta *  e * h
 
                 # Draw K negative samples
-                negative_samples = self.unigram.sample(self.K)
+                negative_samples = self.__draw_negative_samples(self.K)
 
                 # Update the hidden->output matrix for each negative sample
                 for ns in negative_samples:
@@ -162,7 +169,7 @@ class SkipGram():
                             h)))
 
                     # Draw K negative samples
-                    negative_samples = self.unigram.sample(self.K)
+                    negative_samples = self.__draw_negative_samples(self.K)
 
                     # Update the log-likelihood for all the negative samples
                     for ns in negative_samples:
@@ -223,3 +230,9 @@ class SkipGram():
                 LL -= 2 * self.C * np.log(np.sum(np.exp(u)))
 
         return LL
+
+    def __draw_negative_samples(self, amount):
+        if self.sample_mode is SampleMode.uniform:
+            return np.random.randint(0, self.V, amount)
+        elif self.sample_mode is SampleMode.unigram:
+            return self.unigram.sample(amount)

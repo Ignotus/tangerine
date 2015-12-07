@@ -1,4 +1,4 @@
-from skipgram import SkipGram, SkipGramOptimizations
+from skipgram import SkipGram, SkipGramOptimizations, SampleMode
 from utils import tokenize_files, read_vocabulary
 from timeit import default_timer as timer
 
@@ -11,6 +11,7 @@ OUTPUT_NAME     = "skipgram_vectors"
 
 # External parameters
 OPTIMIZATION    = SkipGramOptimizations.negative_sampling
+NSAMPLE_MODE    = SampleMode.uniform
 NUM_EPOCHS      = 1
 MIN_OCCURRENCES = 5
 SUBSAMPLE       = True
@@ -37,7 +38,7 @@ def test_skip_gram():
     skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
             hidden_layer_size=HIDDEN_LAYER_SIZE, optimization=OPTIMIZATION,
             vocab=words, num_negative_samples=NUM_NEGATIVE_SAMPLES,
-            unigram_power=UNIGRAM_POWER)
+            unigram_power=UNIGRAM_POWER, sample_mode=NSAMPLE_MODE)
 
     # Do several training epochs over our training data
     for i in range(NUM_EPOCHS):
@@ -74,6 +75,7 @@ def print_parameters():
     print("Output name prefix: " + OUTPUT_NAME + "\n")
 
     print("Optimizations:            " + str(OPTIMIZATION.name))
+    print("Negative sampling mode:   " + str(NSAMPLE_MODE.name))
     print("Number of epochs:         " + str(NUM_EPOCHS))
     print("Minimum word occurrences: " + str(MIN_OCCURRENCES))
     print("Subsampling enabled:      " + str(SUBSAMPLE) + "\n")
