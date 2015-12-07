@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import ada_grad
 from enum import Enum
 from scipy.special import expit
 from utils import create_context_windows, index2word_to_VocabItems
@@ -15,13 +16,18 @@ class SampleMode(Enum):
     uniform = 1
     unigram = 2
 
+class LRMode(Enum):
+    normal   = 1
+    ada_grad = 2
+
 # Notation used from: word2vec Parameter Learning Explained - Xin Rong
 class SkipGram():
 
     def __init__(self, vocab_size, optimization=SkipGramOptimizations.none, \
                 window_size=4, hidden_layer_size=100, vocab=None, \
                 num_negative_samples=5, unigram_power=0.75, \
-                sample_mode=SampleMode.unigram):
+                sample_mode=SampleMode.unigram, learning_rate=0.025, \
+                lr_mode=LRMode.normal):
 
         # Set the correct training and log-likelihood functions
         self.optimization = optimization
@@ -55,8 +61,15 @@ class SkipGram():
         self.W = np.random.randn(self.V, self.N)
         self.W_prime = np.random.randn(self.N, self.V)
 
-    def train(self, sentence, learning_rate=0.025):
-        self.train_fun(sentence, learning_rate)
+        # Set up everything for learning rate calculation
+        self.eta = learning_rate
+        self.lr_mode = lr_mode
+        if lr_mode is LRMode.ada_grad:
+            self.i_LR = ada_grad.LR(learning_rate, self.V, self.N)
+            self.o_LR = ada_grad.LR(learning_rate, self.V, self.N)
+
+    def train(self, sentence):
+        self.train_fun(sentence)
 
     def compute_LL(self, sentences):
         return self.compute_LL_fun(sentences)
@@ -79,7 +92,7 @@ class SkipGram():
                     output_file.write(word[0] + " " + \
                             " ".join(str(f) for f in vec) + "\n")
 
-    def __train_hierarchical_softmax(self, sentence, eta):
+    def __train_hierarchical_softmax(self, sentence):
         for center_word, context in create_context_windows(sentence, self.C): 
             EH = np.zeros(self.N)
 
@@ -96,9 +109,16 @@ class SkipGram():
                     e = expit(np.dot(h, self.W_prime[:, inner_node])) -  \
                             is_left_child
                     EH += e * self.W_prime[:, inner_node]
+                    grad = e * h
+
+                    # Retrieve our learning rate
+                    eta = self.__get_output_eta(inner_node, grad)
 
                     # Update the hidden->output matrix
-                    self.W_prime[:, inner_node] -= eta * e * h
+                    self.W_prime[:, inner_node] -= eta * grad
+
+            # Retrieve our learning rate
+            eta = self.__get_input_eta(center_word, EH)
 
             # Update input->hidden matrix
             self.W[center_word, :] -= eta * EH
@@ -126,7 +146,7 @@ class SkipGram():
 
         return LL
 
-    def __train_negative_sampling(self, sentence, eta):
+    def __train_negative_sampling(self, sentence):
         for center_word, context in create_context_windows(sentence, self.C): 
             EH = np.zeros(self.N)
 
@@ -139,7 +159,9 @@ class SkipGram():
                 # Update the hidden->output matrix for the positive sample
                 e = expit(np.dot(self.W_prime[:, context_word], h)) - 1.0
                 EH += e * self.W_prime[:, context_word]
-                self.W_prime[:, context_word] -= eta *  e * h
+                grad = e * h
+                eta = self.__get_output_eta(context_word, grad)
+                self.W_prime[:, context_word] -= eta *  grad
 
                 # Draw K negative samples
                 negative_samples = self.__draw_negative_samples(self.K)
@@ -148,7 +170,12 @@ class SkipGram():
                 for ns in negative_samples:
                     e = expit(np.dot(self.W_prime[:, ns], h))
                     EH += e * self.W_prime[:, ns]
-                    self.W_prime[:, ns] -= eta *  e * h
+                    grad = e * h
+                    eta = self.__get_output_eta(ns, grad)
+                    self.W_prime[:, ns] -= eta * grad
+
+            # Get the learning rate
+            eta = self.__get_input_eta(center_word, EH)
 
             # Update the input->hidden matrix
             self.W[center_word, :] -= eta * EH
@@ -179,7 +206,11 @@ class SkipGram():
 
         return LL
 
-    def __train_plain(self, sentence, eta):
+    def __train_plain(self, sentence):
+        
+        # Plain has no support for AdaGrad
+        eta = self.eta
+
         for center_word, context in create_context_windows(sentence, self.C): 
 
             # Retrieve the input vector for the center word
@@ -198,7 +229,7 @@ class SkipGram():
             for c in context:
                 t = np.zeros(self.V)
                 t[c] = 1
-                e = (2 * self.C * y) - t 
+                e = (len(context) * y) - t 
                 EI += e
 
             # Update hidden->output matrix
@@ -228,7 +259,7 @@ class SkipGram():
                     LL += u[c]
 
                 # Add the second term of the log-likelihood
-                LL -= 2 * self.C * np.log(np.sum(np.exp(u)))
+                LL -= len(context) * np.log(np.sum(np.exp(u)))
 
         return LL
 
@@ -237,3 +268,19 @@ class SkipGram():
             return np.random.randint(0, self.V, amount)
         elif self.sample_mode is SampleMode.unigram:
             return self.unigram.sample(amount)
+
+    def __get_input_eta(self, index, grad):
+        if self.lr_mode is LRMode.normal:
+            return self.eta
+        elif self.lr_mode is LRMode.ada_grad:
+            eta = self.i_LR.getLR(index)
+            self.i_LR.updateTotalGrad(index, grad)
+            return eta
+
+    def __get_output_eta(self, index, grad):
+        if self.lr_mode is LRMode.normal:
+            return self.eta
+        elif self.lr_mode is LRMode.ada_grad:
+            eta = self.o_LR.getLR(index)
+            self.o_LR.updateTotalGrad(index, grad)
+            return eta
