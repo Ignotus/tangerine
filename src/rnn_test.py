@@ -7,7 +7,6 @@ import argparse
 from rnn import RNN
 from rnn_relu import RNNReLU
 from rnn_extended import RNNExtended
-from rnn_extended_relu import RNNExtendedReLU
 from rnn_hierarchical_softmax import RNNHSoftmax
 from rnn_hierarchical_softmax_grad_clip import RNNHSoftmaxGradClip
 
@@ -41,14 +40,8 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     if args.model == 'RNN':
         rnn = RNN(len(words), args.nhidden)
-    elif args.model == 'RNNReLU':
-        rnn = RNNReLU(len(words), args.nhidden)
-        rnn.grad_threshold = args.maxgrad
     elif args.model == 'RNNExtended':
         rnn = RNNExtended(len(words), args.nhidden, args.class_size)
-    elif args.model == 'RNNExtendedReLU':
-        rnn = RNNExtendedReLU(len(words), args.nhidden, args.class_size)
-        rnn.grad_threshold = args.maxgrad
     elif args.model == 'RNNHSoftmax':
         vocItems = index2word_to_VocabItems(words)
         rnn = RNNHSoftmax(args.nhidden, vocItems)
@@ -89,7 +82,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    rnn_mode = ['RNN', 'RNNReLU', 'RNNExtended', 'RNNExtendedReLU', 'RNNHSoftmax', 'RNNHSoftmaxGradClip']
+    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax', 'RNNHSoftmaxGradClip']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=1, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=100, help='Hidden layer size', type=int)
