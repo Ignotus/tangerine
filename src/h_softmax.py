@@ -70,10 +70,11 @@ def encode_huffman(vocab):
 
 def hsm(vi, h, W):
     classifiers = zip(vi.path, vi.code)
-    res = 0
+    res = 1
     for step, code in classifiers:
         t = 1 if code == 1 else -1
-        res += sigmoid(t * W[:, step].T.dot(h))
+        sig = sigmoid(t * W[:, step].T.dot(h))
+        res *= sig if sig != 0 else 1
     return res
 
 

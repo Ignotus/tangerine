@@ -11,8 +11,12 @@ import profile
 
 
 ###### DATASETS ######
-train_dir = '../data/training/small_1M'
-vocab_file = '../data/vocabulary/vocab_1M.txt'
+# train_dir = '../data/training/small_1M'
+# vocab_file = '../data/vocabulary/vocab_1M.txt'
+
+train_dir = '../data/hyperparameters/training/'
+vocab_file = '../data/hyperparameters/vocab.txt'
+# tuning_all_dir= '../data/hyperparameters/all/'
 
 
 #tuning_train_dir = '../data/cbow/small/'
@@ -27,16 +31,16 @@ word_vectors_file='../word_vectors/input_cbow_1M.txt'
 
 ###### PARAMETERS ######
 C = 10  # window size
-n = 100  # the number of components in the hidden layer
+n = 200  # the number of components in the hidden layer
 
 
 ALPHA=0.11 # the learning rate. !Set it to None to run the parameters tuning
 
 EPOCHS = 1
-MAX_VOCAB_SIZE = 500000000000 # use all
-MAX_SENTENCES = 50000000000000  # use all
-MAX_LL_SENTENCES = 5000000000
-DEBUG=0 # change to 0 to switch off, to 1 to switch on print messages
+MAX_VOCAB_SIZE = 500 # use all
+MAX_SENTENCES = 500  # use all
+MAX_LL_SENTENCES = 50000
+DEBUG=1 # change to 0 to switch off, to 1 to switch on print messages
 SM_OPTIMIZATION= CBOWSMOpt.hierarchical_softmax
 LR_OPTIMIZATION= CBOWLROpt.none
 
