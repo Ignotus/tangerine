@@ -11,12 +11,8 @@ import profile
 
 
 ###### DATASETS ######
-# train_dir = '../data/training/small_1M'
-# vocab_file = '../data/vocabulary/vocab_1M.txt'
-
-train_dir = '../data/hyperparameters/training/'
-vocab_file = '../data/hyperparameters/vocab.txt'
-# tuning_all_dir= '../data/hyperparameters/all/'
+train_dir = '../data/10M/training'
+vocab_file = '../data/vocabulary/vocab_10M.txt'
 
 
 #tuning_train_dir = '../data/cbow/small/'
@@ -25,22 +21,22 @@ tuning_test_dir = '../data/hyperparameters/test/'
 # tuning_all_dir= '../data/hyperparameters/all/'
 tuning_vocab_file = '../data/hyperparameters/vocab.txt'
 
-word_vectors_file='../word_vectors/input_cbow_1M.txt'
+word_vectors_file='cbow_10M_vectors.txt'
 
 
 
 ###### PARAMETERS ######
 C = 10  # window size
-n = 200  # the number of components in the hidden layer
+n = 100  # the number of components in the hidden layer
 
 
 ALPHA=0.11 # the learning rate. !Set it to None to run the parameters tuning
 
 EPOCHS = 1
-MAX_VOCAB_SIZE = 500 # use all
-MAX_SENTENCES = 500  # use all
-MAX_LL_SENTENCES = 50000
-DEBUG=1 # change to 0 to switch off, to 1 to switch on print messages
+MAX_VOCAB_SIZE = 500000000000 # use all
+MAX_SENTENCES = 50000000000000  # use all
+MAX_LL_SENTENCES = 5000000000
+DEBUG=0 # change to 0 to switch off, to 1 to switch on print messages
 SM_OPTIMIZATION= CBOWSMOpt.hierarchical_softmax
 LR_OPTIMIZATION= CBOWLROpt.none
 
@@ -58,7 +54,7 @@ def tuneLR():
     bestLR = 0
     bestLL = 0
 
-    index_to_word, word_to_index = read_vocabulary(tuning_vocab_file)
+    index_to_word, word_to_index = read_vocabulary(tuning_vocab_file, min_count=5)
 
     alphas = np.arange(0.01, 1, 0.05)
     print('-----------TUNING HYPERPARAMETERS---------')
@@ -100,7 +96,7 @@ def tuneLR():
 def run():
 
     print("Reading vocabulary " + vocab_file + "...")
-    index_to_word, word_to_index = read_vocabulary(vocab_file, MAX_VOCAB_SIZE)
+    index_to_word, word_to_index = read_vocabulary(vocab_file, min_count=5)
     print("Reading sentences and training CBOW ...")
 
     # for performance plots
@@ -118,8 +114,8 @@ def run():
     ######## TRAINING ########
     print('----------STARTING TRAINING -----------')
     for i in range(0, EPOCHS):
-        sentences1 = tokenize_files(word_to_index, train_dir)
-        sentences2 = tokenize_files(word_to_index, train_dir)  # for LL
+        sentences1 = tokenize_files(word_to_index, train_dir, subsample_frequent=True)
+        sentences2 = tokenize_files(word_to_index, train_dir, subsample_frequent=True)  # for LL
 
         if(DEBUG==1):
             ERROR.append(myCbow.computeLL(itertools.islice(sentences1, MAX_LL_SENTENCES)))

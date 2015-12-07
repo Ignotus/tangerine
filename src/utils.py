@@ -30,9 +30,6 @@ def allow_word(word, vocab_dict, total_wordcount, subsample_frequent):
     if subsample_frequent:
         allow = allow_with_prob(word, vocab_dict, total_wordcount)
 
-    if not allow:
-        return False
-
     return allow
 
 # Tokenizes the files in the given folder
@@ -67,7 +64,7 @@ def read_vocabulary(filename, max_size=None, min_count=5):
     index_to_word = []
     with open(filename) as f:
         index_to_word = [parse_word(word) for word in itertools.islice(f, 0, max_size)]
-        index_to_word = [word for word in index_to_word if word[1] > min_count]
+        index_to_word = [word for word in index_to_word if word[1] >= min_count]
 
     # Mapping from "word" -> (index, occurrence_count)
     index_to_word.append([IGNORED_TOKEN, -1])
