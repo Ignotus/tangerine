@@ -4,6 +4,16 @@ from rnn_routine import *
 
 import h_softmax
 
+def hsm(vi, h, W):
+    classifiers = zip(vi.path, vi.code)
+    res = 0
+    for step, code in classifiers:
+        t = 1 if code == 1 else -1
+        sig = sigmoid(t * W[:, step].T.dot(h))
+        res += np.log(sig if sig != 0 else 1)
+    return res
+
+
 
 class RNNHSoftmax:
     def __init__(self, hidden_layer_size, vocab):
@@ -38,7 +48,7 @@ class RNNHSoftmax:
             hX[idx] = self.U[:,xi]
 
         h = sigmoid(hX[:-1]) # Just don't use hidden layers + self.s[1].dot(self.W))
-        return np.sum([np.log(h_softmax.hsm(self.vocab[value], h[index], self.V.T))
+        return np.sum([hsm(self.vocab[value], h[index], self.V.T)
                        for index, value in enumerate(Xi[1:])])
 
     def log_likelihood(self, Xii):

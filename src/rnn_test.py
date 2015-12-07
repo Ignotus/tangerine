@@ -20,7 +20,7 @@ from timeit import default_timer as timer
 
 MIN_WORD_COUNT=5
 MAX_SENTENCES = 8000000000 # use all
-MAX_LIKELIHOOD_SENTENCES = 1000
+MAX_LIKELIHOOD_SENTENCES = 10000
 
 def write_vectors(words, rnn, filename):
     with open(filename, 'w') as output_file:
@@ -60,13 +60,15 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     num_words = 0
     testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
+    lr = 0.1
+    print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
     for i in range(args.iter):
         sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
-            rnn.train(sentence)
+            rnn.train(sentence, lr=lr)
             num_words += len(sentence)
 
-        print("Iteration " + str(i + 1) + "/" + str(args.iter) + " finished (" + str(num_words) + " words)")
+        print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.2f" % (lr) + " finished (" + str(num_words) + " words)")
         print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
         num_words = 0
 
@@ -101,5 +103,6 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit()
 
+    #testRNN(args, "data/vocabulary/small.txt", "hyperparameters/training", "hyperparameters/training")
     testRNN(args, "../data/vocabulary/vocab_1M.txt", "../data/1M/training", "../data/1M/test/")
 
