@@ -73,8 +73,7 @@ def hsm(vi, h, W):
     res = 1
     for step, code in classifiers:
         t = 1 if code == 1 else -1
-        sig = sigmoid(t * W[:, step].T.dot(h))
-        res *= sig if sig != 0 else 1
+        res *= sigmoid(t * W[:, step].T.dot(h))
     return res
 
 
