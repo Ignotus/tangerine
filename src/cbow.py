@@ -59,7 +59,8 @@ class CBOW:
         for cw in CWs:
             t = cw[0]  # the actual center word
             EH = np.zeros(self.dim)
-            h = (1 / self.C) * np.sum(self.V[cw[1],], axis=0)
+            cwl= len(cw[1]) if(len(cw[1])!=0) else 1 # the number of context words, note that can't have division by 0
+            h = (1 / cwl) * np.sum(self.V[cw[1],], axis=0)
 
             classifiers = zip(self.vocab[t].path, self.vocab[t].code)
             for step, code in classifiers:
@@ -72,7 +73,7 @@ class CBOW:
                 #self.oAlpha.updateTotalGrad(step, der)
 
             for w in cw[1]:
-                self.V[w, :] -= (self.alpha / self.C) * EH  # 2. updating input->hidden layer
+                self.V[w, :] -= (self.alpha /cwl) * EH  # 2. updating input->hidden layer
                 # self.V[w, :] -= (self.iAlpha.getLR(w) / self.C) * EH  # 2. updating input->hidden layer
                 #self.iAlpha.updateTotalGrad(w, EH)
 
@@ -83,8 +84,9 @@ class CBOW:
         for sent in sentences:
             CWs = create_context_windows(sent, self.C)
             for cw in CWs:
+                cwl= len(cw[1]) if(len(cw[1])!=0) else 1 # the number of context words
                 t = cw[0]  # the actual center word
-                h = (1 / self.C) * np.sum(self.V[cw[1],], axis=0)
+                h = (1 /cwl) * np.sum(self.V[cw[1],], axis=0)
                 prob = hsm(self.vocab[t], h, self.W)
                 LL += (0 if prob == 0 else np.log(prob))
         return LL

@@ -31,7 +31,7 @@ class RNNExtended:
         return self.U[:, word_idx]
 
     def predict(self, x):
-        s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
+        s_t = sigmoid(self.U.dot(x))# + self.W.dot(self.s[1]))
         return np.argmax(softmax(self.X.dot(s_t))) * self.class_size +\
                 np.argmax(softmax(self.V.dot(s_t)))
 

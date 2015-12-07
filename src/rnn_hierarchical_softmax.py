@@ -37,9 +37,9 @@ class RNNHSoftmax:
         for idx, xi in enumerate(Xi):
             hX[idx] = self.U[:,xi]
 
-        h = sigmoid(hX[:-1] + self.s[1].dot(self.W))
-        return -np.sum([h_softmax.hsm(self.vocab[value], h[index], self.V.T)
-                        for index, value in enumerate(Xi[1:])])
+        h = sigmoid(hX[:-1]) # Just don't use hidden layers + self.s[1].dot(self.W))
+        return np.sum([np.log(h_softmax.hsm(self.vocab[value], h[index], self.V.T))
+                       for index, value in enumerate(Xi[1:])])
 
     def log_likelihood(self, Xii):
         """
@@ -62,11 +62,11 @@ class RNNHSoftmax:
             # Path for the next word
             classifiers = zip(self.vocab[di].path, self.vocab[di].code)
             for step, code in classifiers:
-                p = sigmoid(self.V[step,:].T.dot(self.s[0]))
+                p = sigmoid(self.V[step].T.dot(self.s[0]))
                 g = code - p
-                err_hidden[0] += g * self.V[step,:]
+                err_hidden[0] += g * self.V[step] * self.deriv_s[0]
                 der = g * self.s[0]
-                self.V[step,:] += lr * der
+                self.V[step] += lr * der
 
             for i in range(1, self.ntime - 1):
                 err_hidden[i] = self.W.T.dot(err_hidden[i - 1]) * self.deriv_s[i]
