@@ -11,7 +11,7 @@ OUTPUT_NAME     = "skipgram_vectors"
 
 # External parameters
 OPTIMIZATION    = SkipGramOptimizations.negative_sampling
-NUM_EPOCHS      = 3
+NUM_EPOCHS      = 1
 MIN_OCCURRENCES = 5
 SUBSAMPLE       = True
 
@@ -20,6 +20,7 @@ HIDDEN_LAYER_SIZE    = 100
 WINDOW_SIZE          = 4
 LEARNING_RATE        = 0.03
 NUM_NEGATIVE_SAMPLES = 5
+UNIGRAM_POWER        = 0.75
 
 def test_skip_gram():
     print_parameters()
@@ -35,7 +36,8 @@ def test_skip_gram():
     start = timer()
     skip_gram = SkipGram(vocab_size, window_size=WINDOW_SIZE,
             hidden_layer_size=HIDDEN_LAYER_SIZE, optimization=OPTIMIZATION,
-            vocab=words, num_negative_samples=NUM_NEGATIVE_SAMPLES)
+            vocab=words, num_negative_samples=NUM_NEGATIVE_SAMPLES,
+            unigram_power=UNIGRAM_POWER)
 
     # Do several training epochs over our training data
     for i in range(NUM_EPOCHS):
@@ -80,6 +82,7 @@ def print_parameters():
     print("Window size:                " + str(WINDOW_SIZE))
     print("Learning rate:              " + str(LEARNING_RATE))
     print("Number of negative samples: " + str(NUM_NEGATIVE_SAMPLES))
+    print("Unigram distribution power: " + str(UNIGRAM_POWER))
     print("============================================================\n")
 
 if __name__ == '__main__':
