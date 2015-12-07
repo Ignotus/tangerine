@@ -2,18 +2,6 @@
 import numpy as np
 from rnn_routine import *
 
-import h_softmax
-
-def hsm(vi, h, W):
-    classifiers = zip(vi.path, vi.code)
-    res = 0
-    for step, code in classifiers:
-        t = 1 if code == 1 else -1
-        sig = sigmoid(t * W[:, step].T.dot(h))
-        res += np.log(sig if sig != 0 else 1)
-    return res
-
-
 
 class RNNHSoftmax:
     def __init__(self, hidden_layer_size, vocab):
@@ -72,7 +60,7 @@ class RNNHSoftmax:
             # Path for the next word
             classifiers = zip(self.vocab[di].path, self.vocab[di].code)
             for step, code in classifiers:
-                p = sigmoid(self.V[step].T.dot(self.s[0]))
+                p = sigmoid(self.V[step].dot(self.s[0]))
                 g = code - p
                 err_hidden[0] += g * self.V[step] * self.deriv_s[0]
                 der = g * self.s[0]

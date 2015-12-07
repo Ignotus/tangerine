@@ -3,21 +3,11 @@ import numpy as np
 from rnn_hierarchical_softmax import RNNHSoftmax
 from rnn_routine import *
 
-import h_softmax
 
 class RNNHSoftmaxGradClip(RNNHSoftmax):
     def __init__(self, hidden_layer_size, vocab):
         super(RNNHSoftmaxGradClip, self).__init__(hidden_layer_size, vocab)
         self.grad_threshold = 0.01
-
-    def _sentence_log_likelihood(self, Xi):
-        hX = np.zeros((len(Xi), self.H))
-        for idx, xi in enumerate(Xi):
-            hX[idx] = self.U[:,xi]
-
-        h = sigmoid(hX[:-1])# + self.s[1].dot(self.W))
-        return -np.sum([h_softmax.hsm(self.vocab[value], h[index], self.V.T)
-                        for index, value in enumerate(Xi[1:])])
 
     def train(self, Xi, lr=0.1):
         err_hidden = np.empty((self.ntime - 1, self.H))

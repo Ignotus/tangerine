@@ -18,3 +18,12 @@ def clip_grad(grad, threshold):
     if abs_grad > threshold:
         grad *= threshold / abs_grad
     return grad
+
+def hsm(vi, h, W):
+    classifiers = zip(vi.path, vi.code)
+    res = 0
+    for step, code in classifiers:
+        t = 1 if code == 1 else -1
+        sig = sigmoid(t * W[:, step].T.dot(h))
+        res += np.log(sig if sig != 0 else 1)
+    return res
