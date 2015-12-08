@@ -3,6 +3,10 @@ import numpy as np
 import glob
 import itertools
 
+from spacy.parts_of_speech import ADJ
+from spacy.parts_of_speech import NO_TAG
+
+
 from collections import defaultdict
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -37,7 +41,7 @@ def allow_word(word, vocab_dict, total_wordcount, subsample_frequent):
 # - Yields sentences split up in words, represented by vocabulary index
 # Files in data folder should be tokenized by sentence (one sentence per newline),
 # Like in the 1B-words benchmark
-def tokenize_files(vocab_dict, datafolder, subsample_frequent=False):
+def tokenize_files(vocab_dict, datafolder, subsample_frequent=False, nlp=None):
     total_dict_words = sum([value[1] for key, value in vocab_dict.items()])
     filenames = glob.glob(datafolder + "/*")
     for filename in filenames:
@@ -45,13 +49,25 @@ def tokenize_files(vocab_dict, datafolder, subsample_frequent=False):
             for sentence in f:
                 # Use nltk tokenizer to split the sentence into words
                 words = word_tokenize(sentence.lower())
-                # Filter (remove punctuation)
-                words = [word for word in words if allow_word(word, vocab_dict, total_dict_words, subsample_frequent)]
-                # Replace words that are not in vocabulary with special token
-                words = [word if word in vocab_dict else IGNORED_TOKEN for word in words]
-                # Yield the sentence as indices
-                if words:
-                    yield [vocab_dict[word][0] for word in words]
+                if nlp:
+                    tokens = nlp(' '.join(words), tag=True, parse=False)
+                    tags = [token.pos - ADJ + 1 for token in tokens]
+                    # Filter (remove punctuation)
+                    words = [(tag, word) for tag, word in zip(tags, words) if allow_word(word, vocab_dict, total_dict_words, subsample_frequent)]
+                    # Replace words that are not in vocabulary with special token
+                    words = [(tag, word) if word in vocab_dict else (NO_TAG, IGNORED_TOKEN) for tag, word in words]
+                    # Yield the sentence as indices
+                    if words:
+                        yield [(tag, vocab_dict[word][0]) for tag, word in words]
+                else:
+                    # Filter (remove punctuation)
+                    words = [word for word in words if allow_word(word, vocab_dict, total_dict_words, subsample_frequent)]
+                    # Replace words that are not in vocabulary with special token
+                    words = [word if word in vocab_dict else IGNORED_TOKEN for word in words]
+                    # Yield the sentence as indices
+                    if words:
+                        yield [vocab_dict[word][0] for word in words]
+
 
 def parse_word(string):
     parts = string.strip().split()

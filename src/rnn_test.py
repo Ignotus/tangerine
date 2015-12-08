@@ -4,10 +4,13 @@ import sys
 import itertools
 import argparse
 
+import spacy.en
+
+
 from rnn import RNN
-from rnn_relu import RNNReLU
 from rnn_extended import RNNExtended
 from rnn_hierarchical_softmax import RNNHSoftmax
+from rnn_hierarchical_softmax_pos import RNNHSoftmaxPOS
 from rnn_hierarchical_softmax_grad_clip import RNNHSoftmaxGradClip
 
 from utils import read_vocabulary, tokenize_files, index2word_to_VocabItems
@@ -16,6 +19,7 @@ from timeit import default_timer as timer
 # Use preprocessed data from:
 # http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz
 # Contains one sentence tokenized per newline
+
 
 MIN_WORD_COUNT=5
 MAX_SENTENCES = 8000000000 # use all
@@ -48,15 +52,23 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     elif args.model == 'RNNHSoftmaxGradClip':
         vocItems = index2word_to_VocabItems(words)
         rnn = RNNHSoftmaxGradClip(args.nhidden, vocItems)
+    elif args.model == 'RNNHSoftmaxPOS':
+        vocItems = index2word_to_VocabItems(words)
+        rnn = RNNHSoftmaxPOS(args.nhidden, vocItems)
+
+    if args.model == 'RNNHSoftmaxPOS':
+        _NLP = spacy.en.English(parser=False, tagger=True, entity=False)
+    else:
+        _NLP = None
 
     
     num_words = 0
-    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
+    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True, nlp=_NLP)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
     lr = 0.1
     print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
     for i in range(args.iter):
-        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
+        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True, nlp=_NLP)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             rnn.train(sentence, lr=lr)
             num_words += len(sentence)
@@ -82,7 +94,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax', 'RNNHSoftmaxGradClip']
+    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax', 'RNNHSoftmaxGradClip', 'RNNHSoftmaxPOS']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=1, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=100, help='Hidden layer size', type=int)

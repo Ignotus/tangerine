@@ -1,2 +1,4 @@
 nltk
+scipy
 numpy
+spacy

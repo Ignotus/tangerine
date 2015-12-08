@@ -27,3 +27,13 @@ def hsm(vi, h, W):
         sig = sigmoid(t * W[:, step].T.dot(h))
         res += np.log(sig if sig != 0 else 1)
     return res
+
+
+def hsm2(vi, h, tag, V, G):
+    classifiers = zip(vi.path, vi.code)
+    res = 0
+    for step, code in classifiers:
+        t = 1 if code == 1 else -1
+        sig = sigmoid(t * (V[:, step].dot(h) + G[step, tag]))
+        res += np.log(sig if sig != 0 else 1)
+    return res
