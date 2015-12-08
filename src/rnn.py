@@ -23,6 +23,14 @@ class RNN:
     def export(self, file_path):
         np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.s, self.deriv_s)
 
+    def load(self, file_path):
+        npzfile = np.load(file_path)
+        self.N = npzfile['arr_0']
+        self.H = npzfile['arr_1']
+        self.U = npzfile['arr_2']
+        self.W = npzfile['arr_3']
+        self.V = npzfile['arr_4']
+
     def word_representation_outer(self, word_idx):
         return self.V[word_idx, :]
 

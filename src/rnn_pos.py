@@ -18,6 +18,16 @@ class RNNPOS(RNN):
     def export(self, file_path):
         np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.s, self.deriv_s, self.F, self.G)
 
+    def load(self, file_path):
+        npzfile = np.load(file_path)
+        self.N = npzfile['arr_0']
+        self.H = npzfile['arr_1']
+        self.U = npzfile['arr_2']
+        self.W = npzfile['arr_3']
+        self.V = npzfile['arr_4']
+        self.F = npzfile['arr_7']
+        self.G = npzfile['arr_8']
+
     def _sentence_log_likelihood(self, Xi):
         hX = np.zeros((len(Xi), self.H))
         hTags = np.zeros((len(Xi), NUM_OF_TAGS))

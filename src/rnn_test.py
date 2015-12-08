@@ -32,6 +32,12 @@ def write_vectors(words, rnn, filename):
             vec = rnn.word_representation_inner(i)
             output_file.write(word[0] + " " + " ".join(str(f) for f in vec) + "\n")
 
+def write_outer_vectors(words, rnn, filename):
+    with open(filename, 'w') as output_file:
+        for i, word in enumerate(words):
+            vec = rnn.word_representation_outer(i)
+            output_file.write(word[0] + " " + " ".join(str(f) for f in vec) + "\n")
+
 def debug_sentence(words, sentence):
 	print(" ".join(words[index][0] for index in sentence))
 
@@ -45,6 +51,10 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     if args.model == 'RNN':
         rnn = RNN(len(words), args.nhidden)
+        if (args.load_weights and args.export_outer_weights)
+            rnn.load(args.load_weights)
+            write_outer_vectors(words, rnn, args.export_outer_weights)
+            sys.exit(0)
     elif args.model == 'RNNExtended':
         rnn = RNNExtended(len(words), args.nhidden, args.class_size)
     elif args.model == 'RNNHSoftmax':
@@ -58,6 +68,10 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
         rnn = RNNHSoftmaxPOS(args.nhidden, vocItems)
     elif args.model == 'RNNPOS':
         rnn = RNNPOS(len(words), args.nhidden)
+        if (args.load_weights and args.export_outer_weights)
+            rnn.load(args.load_weights)
+            write_outer_vectors(words, rnn, args.export_outer_weights)
+            sys.exit(0)
 
     if args.model == 'RNNHSoftmaxPOS' or args.model == 'RNNPOS':
         _NLP = spacy.en.English(parser=False, tagger=True, entity=False)
@@ -105,7 +119,8 @@ if __name__ == '__main__':
     parser.add_argument('--class_size', default=1000, help='Class size (is used only with RNNExtended models)', type=int)
     parser.add_argument('--export_file', default=None, help='File to which vectors are written', type=str)
     parser.add_argument('--export_weights', default=None, help='File to which RNN weights are exported', type=str)
-
+    parser.add_argument('--load_weights', default=None, help='File from which to load RNN weights', type=str)
+    parser.add_argument('--export_outer_weights', default=None, help='File to export outer representation (if it\'s supported)', type=str)
     args = parser.parse_args()
     if len(sys.argv) == 1:
         parser.print_help()
