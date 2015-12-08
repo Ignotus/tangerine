@@ -8,6 +8,7 @@ import spacy.en
 
 
 from rnn import RNN
+from rnn_pos import RNNPOS
 from rnn_extended import RNNExtended
 from rnn_hierarchical_softmax import RNNHSoftmax
 from rnn_hierarchical_softmax_pos import RNNHSoftmaxPOS
@@ -55,8 +56,10 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     elif args.model == 'RNNHSoftmaxPOS':
         vocItems = index2word_to_VocabItems(words)
         rnn = RNNHSoftmaxPOS(args.nhidden, vocItems)
+    elif args.model == 'RNNPOS':
+        rnn = RNNPOS(len(words), args.nhidden)
 
-    if args.model == 'RNNHSoftmaxPOS':
+    if args.model == 'RNNHSoftmaxPOS' or args.model == 'RNNPOS':
         _NLP = spacy.en.English(parser=False, tagger=True, entity=False)
     else:
         _NLP = None
@@ -94,7 +97,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax', 'RNNHSoftmaxGradClip', 'RNNHSoftmaxPOS']
+    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax', 'RNNHSoftmaxGradClip', 'RNNHSoftmaxPOS', 'RNNPOS']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=1, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=100, help='Hidden layer size', type=int)
