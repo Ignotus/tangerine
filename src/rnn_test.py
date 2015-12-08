@@ -51,7 +51,7 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     if args.model == 'RNN':
         rnn = RNN(len(words), args.nhidden)
-        if (args.load_weights and args.export_outer_weights)
+        if (args.load_weights and args.export_outer_weights):
             rnn.load(args.load_weights)
             write_outer_vectors(words, rnn, args.export_outer_weights)
             sys.exit(0)
@@ -68,7 +68,7 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
         rnn = RNNHSoftmaxPOS(args.nhidden, vocItems)
     elif args.model == 'RNNPOS':
         rnn = RNNPOS(len(words), args.nhidden)
-        if (args.load_weights and args.export_outer_weights)
+        if (args.load_weights and args.export_outer_weights):
             rnn.load(args.load_weights)
             write_outer_vectors(words, rnn, args.export_outer_weights)
             sys.exit(0)
