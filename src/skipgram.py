@@ -113,9 +113,9 @@ class SkipGram():
                         self.vocabulary[context_word].code)
 
                 # Go through every inner node in the path to the context word
-                for inner_node, is_left_child in path:
+                for inner_node, next_left in path:
                     e = expit(np.dot(h, self.W_prime[:, inner_node])) -  \
-                            is_left_child
+                            next_left
                     EH += e * self.W_prime[:, inner_node]
                     grad = e * h
 
@@ -147,8 +147,8 @@ class SkipGram():
 
                     # Go through every inner node in the path to the context
                     # word
-                    for inner_node, is_left_child in path:
-                        sign = -1 if bool(is_left_child) else 1
+                    for inner_node, next_left in path:
+                        sign = 1 if bool(next_left) else -1
                         LL += np.log(expit(sign * np.dot(h, self.W_prime[:, 
                                 inner_node])))
 
