@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import ada_grad
+import ada_delta
 from enum import Enum
 from scipy.special import expit
 from utils import create_context_windows, index2word_to_VocabItems
@@ -17,8 +18,9 @@ class SampleMode(Enum):
     unigram = 2
 
 class LRMode(Enum):
-    normal   = 1
-    ada_grad = 2
+    normal    = 1
+    ada_grad  = 2
+    ada_delta = 3
 
 # Notation used from: word2vec Parameter Learning Explained - Xin Rong
 class SkipGram():
@@ -27,7 +29,8 @@ class SkipGram():
                 window_size=4, hidden_layer_size=100, vocab=None, \
                 num_negative_samples=5, unigram_power=0.75, \
                 sample_mode=SampleMode.unigram, learning_rate=0.025, \
-                lr_mode=LRMode.normal):
+                lr_mode=LRMode.normal, ada_delta_noise=1e-3, \
+                ada_delta_decay_rate=0.95):
 
         # Set the correct training and log-likelihood functions
         self.optimization = optimization
@@ -67,6 +70,11 @@ class SkipGram():
         if lr_mode is LRMode.ada_grad:
             self.i_LR = ada_grad.LR(learning_rate, self.V, self.N)
             self.o_LR = ada_grad.LR(learning_rate, self.V, self.N)
+        elif lr_mode is LRMode.ada_delta:
+            self.i_LR = ada_delta.LR(self.V, self.N, noise=ada_delta_noise, \
+                    decay_rate=ada_delta_decay_rate)
+            self.o_LR = ada_delta.LR(self.V, self.N, noise=ada_delta_noise, \
+                    decay_rate=ada_delta_decay_rate)
 
     def train(self, sentence):
         self.train_fun(sentence)
@@ -276,6 +284,9 @@ class SkipGram():
             eta = self.i_LR.getLR(index)
             self.i_LR.updateTotalGrad(index, grad)
             return eta
+        else:
+            return self.i_LR.get_and_update_LR(index, grad)
+
 
     def __get_output_eta(self, index, grad):
         if self.lr_mode is LRMode.normal:
@@ -284,3 +295,5 @@ class SkipGram():
             eta = self.o_LR.getLR(index)
             self.o_LR.updateTotalGrad(index, grad)
             return eta
+        else:
+            return self.o_LR.get_and_update_LR(index, grad)

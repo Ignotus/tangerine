@@ -2,7 +2,7 @@ import numpy as np
 
 class LR:
 
-    def __init__(self, vocab_size, word_dim, decay_rate=0.95, noise=1e-4):
+    def __init__(self, vocab_size, word_dim, decay_rate=0.95, noise=1e-3):
         self.rho = decay_rate
         self.epsilon = noise
         self.Eg = np.zeros((vocab_size, word_dim))
