@@ -3,8 +3,8 @@ import numpy as np
 import glob
 import itertools
 
-from spacy.parts_of_speech import ADJ
-from spacy.parts_of_speech import NO_TAG
+#from spacy.parts_of_speech import ADJ
+#from spacy.parts_of_speech import NO_TAG
 
 
 from collections import defaultdict
@@ -104,3 +104,11 @@ def create_context_windows(sentence, window_size):
                 context_window.append(sentence[i+j])
 
         yield (sentence[i], context_window)
+
+def files_len(folder):
+    filenames = glob.glob(folder + "/*")
+    for fname in filenames:
+        with open(fname) as f:
+            for i, l in enumerate(f):
+                pass
+    return i + 1
