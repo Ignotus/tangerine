@@ -3,8 +3,7 @@ import numpy as np
 import glob
 import itertools
 
-#from spacy.parts_of_speech import ADJ
-#from spacy.parts_of_speech import NO_TAG
+from spacy.parts_of_speech import ADJ, NO_TAG
 
 
 from collections import defaultdict
