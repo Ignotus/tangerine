@@ -44,7 +44,6 @@ def debug_sentence(words, sentence):
 def testRNN(args, vocabulary_file, training_dir, testing_dir):
     print("Reading vocabulary " + vocabulary_file + "...")
     words, dictionary = read_vocabulary(vocabulary_file, min_count=MIN_WORD_COUNT)
-    print words
     print("Vocabulary size: " + str(len(words)) + ", min-count=" + str(MIN_WORD_COUNT))
 
     print("Reading sentences and training RNN...")
