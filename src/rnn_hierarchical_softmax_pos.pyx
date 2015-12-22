@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env cython3
 import numpy as np
 from rnn_hierarchical_softmax import RNNHSoftmax
 from rnn_routine import *
@@ -24,7 +24,7 @@ class RNNHSoftmaxPOS(RNNHSoftmax):
         for idx, (tag, xi) in enumerate(Xi):
             hX[idx] = self.U[:,xi] + self.F[:,tag]
 
-        h = sigmoid(hX[:-1]) # Just don't use hidden layers + self.s[1].dot(self.W))
+        h = sigmoid_mat(hX[:-1]) # Just don't use hidden layers + self.s[1].dot(self.W))
         return np.sum([hsm2(self.vocab[value], h[index], tag, self.V.T, self.G)
                        for index, (tag, value) in enumerate(Xi[1:])])
 
@@ -35,7 +35,7 @@ class RNNHSoftmaxPOS(RNNHSoftmax):
             self.deriv_s[1:] = self.deriv_s[:-1]
 
             # self.U[:,xi] == self.U.dot(x) if x is one-hot-vector
-            self.s[0] = sigmoid(self.U[:,xi] + self.F[:,tagx] + self.W.dot(self.s[1]))
+            self.s[0] = sigmoid_vec(self.U[:,xi] + self.F[:,tagx] + self.W.dot(self.s[1]))
             self.deriv_s[0] = self.s[0] * (1 - self.s[0])
 
             err_hidden[0] = np.zeros(self.H)
@@ -43,7 +43,7 @@ class RNNHSoftmaxPOS(RNNHSoftmax):
             # Path for the next word
             classifiers = zip(self.vocab[di].path, self.vocab[di].code)
             for step, code in classifiers:
-                p = sigmoid(self.V[step].dot(self.s[0]) + self.G[step,tagx])
+                p = sigmoid_float(self.V[step].dot(self.s[0]) + self.G[step,tagx])
                 g = code - p
                 err_hidden[0] += g * self.V[step] * self.deriv_s[0]
                 der = g * self.s[0]

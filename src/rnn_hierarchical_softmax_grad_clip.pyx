@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env cython3
 import numpy as np
 from rnn_hierarchical_softmax import RNNHSoftmax
 from rnn_routine import *
@@ -16,7 +16,7 @@ class RNNHSoftmaxGradClip(RNNHSoftmax):
             self.deriv_s[1:] = self.deriv_s[:-1]
 
             # self.U[:,xi] == self.U.dot(x) if x is one-hot-vector
-            self.s[0] = sigmoid(self.U[:,xi] + self.W.dot(self.s[1]))
+            self.s[0] = sigmoid_vec(self.U[:,xi] + self.W.dot(self.s[1]))
             self.deriv_s[0] = self.s[0] * (1 - self.s[0])
 
             err_hidden[0] = np.zeros(self.H)
@@ -24,7 +24,7 @@ class RNNHSoftmaxGradClip(RNNHSoftmax):
             # Path for the next word
             classifiers = zip(self.vocab[di].path, self.vocab[di].code)
             for step, code in classifiers:
-                p = sigmoid(self.V[step].dot(self.s[0]))
+                p = sigmoid_float(self.V[step].dot(self.s[0]))
                 g = code - p
                 err_hidden[0] += g * self.V[step] * self.deriv_s[0]
                 der = g * self.s[0]
