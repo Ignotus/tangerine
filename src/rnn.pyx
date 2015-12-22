@@ -1,4 +1,4 @@
-#!/usr/bin/env cython3
+#!/usr/bin/env python3
 import numpy as np
 from rnn_routine import *
 
@@ -37,12 +37,16 @@ class RNN:
     def word_representation_inner(self, word_idx):
         return self.U[:, word_idx]
 
+    def predict(self, x):
+        s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
+        return np.argmax(softmax(self.V.dot(s_t)))
+
     def _sentence_log_likelihood(self, Xi):
         hX = np.zeros((len(Xi), self.H))
         for idx, xi in enumerate(Xi):
             hX[idx] = self.U[:,xi]
 
-        h = sigmoid_mat(hX[:-1])# + self.s[1].dot(self.W))
+        h = sigmoid(hX[:-1])# + self.s[1].dot(self.W))
         log_q = h.dot(self.V.T)
         a = np.max(log_q, axis=1)
         log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))
@@ -64,7 +68,7 @@ class RNN:
             self.deriv_s[1:] = self.deriv_s[:-1]
 
             # self.U[:,xi] == self.U.dot(x) if x is one-hot-vector
-            self.s[0] = sigmoid_vec(self.U[:,xi] + self.W.dot(self.s[1]))
+            self.s[0] = sigmoid(self.U[:,xi] + self.W.dot(self.s[1]))
             self.deriv_s[0] = self.s[0] * (1 - self.s[0])
 
             err_out = -softmax(self.V.dot(self.s[0]))
