@@ -62,11 +62,3 @@ target/
 
 # jetbrains
 .idea*
-*.c
-*.npz
-results*/
-*.out*
-log*
-*.vocab*
-*.ropeproject/
-*.zip
