@@ -88,5 +88,5 @@ class RNNExtended:
                 err_hidden[i] = self.W.T.dot(err_hidden[i - 1]) * self.deriv_s[i]
 
             self.U[:, xi] += lr * err_hidden[0]
-            self.W += lr * err_hidden.T.dot(self.s[1:])
+            self.W += lr * self.s[1:].T.dot(err_hidden)
 

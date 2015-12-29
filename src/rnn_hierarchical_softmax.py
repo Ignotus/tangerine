@@ -71,4 +71,4 @@ class RNNHSoftmax:
 
             # The same trick. Instead of updating a whole matrix by err_hidden[0] dot x
             self.U[:, xi] += lr * err_hidden[0]
-            self.W += lr * err_hidden.T.dot(self.s[1:])
+            self.W += lr * self.s[1:].T.dot(err_hidden)
