@@ -10,8 +10,8 @@ def relu(x):
     return np.maximum(0, x)
 
 def transfer_sigmoid(x):
-        s = sigmoid(x)
-        return s, s * (1 - s)
+    s = sigmoid(x)
+    return s, s * (1 - s)
 
 def transfer_relu(x):
     return relu(x), (x > 0).astype(int)
