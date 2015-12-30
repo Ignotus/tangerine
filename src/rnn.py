@@ -37,10 +37,6 @@ class RNN:
     def word_representation_inner(self, word_idx):
         return self.U[:, word_idx]
 
-    def predict(self, x):
-        s_t = sigmoid(self.U.dot(x) + self.W.dot(self.s[1]))
-        return np.argmax(softmax(self.V.dot(s_t)))
-
     def _sentence_log_likelihood(self, Xi):
         prev_s = np.zeros(self.H)
         log_ll = 0
