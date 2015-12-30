@@ -16,8 +16,8 @@ from timeit import default_timer as timer
 
 
 MIN_WORD_COUNT=5
-MAX_SENTENCES = 1000 # use all
-MAX_LIKELIHOOD_SENTENCES = 1000
+MAX_SENTENCES = 8000000000 # use all
+MAX_LIKELIHOOD_SENTENCES = 10000
 
 def write_vectors(words, rnn, filename):
     with open(filename, 'w') as output_file:
