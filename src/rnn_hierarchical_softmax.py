@@ -19,7 +19,7 @@ class RNNHSoftmax:
         self.V = np.random.randn(self.N, self.H)
 
         # Initial state of the hidden layer
-        self.ntime = 3
+        self.ntime = 5
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
@@ -31,13 +31,13 @@ class RNNHSoftmax:
         return self.U[:, word_idx]
 
     def _sentence_log_likelihood(self, Xi):
-        hX = np.zeros((len(Xi), self.H))
-        for idx, xi in enumerate(Xi):
-            hX[idx] = self.U[:,xi]
-
-        h = sigmoid(hX[:-1]) # Just don't use hidden layers + self.s[1].dot(self.W))
-        return np.sum([hsm(self.vocab[value], h[index], self.V.T)
-                       for index, value in enumerate(Xi[1:])])
+        prev_s = np.zeros(self.H)
+        log_ll = 0
+        for xi, di in zip(Xi, Xi[1:]):
+            h = sigmoid(self.U[:,xi] + self.W.dot(prev_s))
+            log_ll += hsm(self.vocab[di], h, self.V.T)
+            prev_s = h
+        return log_ll
 
     def log_likelihood(self, Xii):
         """

@@ -82,7 +82,7 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     num_words = 0
     testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True, nlp=_NLP)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
-    lr = 0.1
+    lr = 0.005
     print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
     for i in range(args.iter):
         sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True, nlp=_NLP)
@@ -90,7 +90,7 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
             rnn.train(sentence, lr=lr)
             num_words += len(sentence)
 
-        print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.2f" % (lr) + " finished (" + str(num_words) + " words)")
+        print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.3f" % (lr) + " finished (" + str(num_words) + " words)")
         print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
         num_words = 0
 
@@ -127,5 +127,5 @@ if __name__ == '__main__':
         sys.exit()
 
     #testRNN(args, "data/vocabulary/small.txt", "hyperparameters/training", "hyperparameters/training")
-    testRNN(args, "../data/vocabulary/vocab_1M.txt", "../data/1M/training", "../data/1M/test/")
+    testRNN(args, "data/vocabulary/vocab_1M.txt", "data/1M/training", "data/1M/test/")
 

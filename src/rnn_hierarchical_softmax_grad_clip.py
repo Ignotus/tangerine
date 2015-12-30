@@ -35,4 +35,4 @@ class RNNHSoftmaxGradClip(RNNHSoftmax):
 
             # The same trick. Instead of updating a whole matrix by err_hidden[0] dot x
             self.U[:, xi] += lr * clip_grad(err_hidden[0], self.grad_threshold)
-            self.W += lr * clip_grad(self.s[1:].T.dot(err_hidden)), self.grad_threshold)
+            self.W += lr * clip_grad(self.s[1:].T.dot(err_hidden), self.grad_threshold)
