@@ -9,15 +9,34 @@ def sigmoid(x):
 def relu(x):
     return np.maximum(0, x)
 
-def softmax(x):
-    exp_x = np.exp(x)
-    return exp_x / np.sum(exp_x)
+def transfer_sigmoid(x):
+        s = sigmoid(x)
+        return s, s * (1 - s)
 
+def transfer_relu(x):
+    return relu(x), (x > 0).astype(int)
+
+def softmax(x):
+    e = np.exp(x - np.max(x))  # prevent overflow
+    if e.ndim == 1:
+        return e / np.sum(e, axis=0)
+    return e / np.array([np.sum(e, axis=1)]).T
+
+# https://github.com/lisa-lab/pylearn2/blob/master/pylearn2/sandbox/rnn/costs/gradient_clipping.py#L47
 def clip_grad(grad, threshold):
     abs_grad = np.sqrt(np.sum(grad * grad))
     if abs_grad > threshold:
         grad *= threshold / abs_grad
     return grad
+
+def grad_changes_sigmoid(lr, grad):
+    return lr * grad
+
+# With gradient clipping
+# "We use clipping with a cut-off threshold of 6 on the norm of the gradients"
+# http://arxiv.org/pdf/1211.5063.pdf
+def grad_changes_relu(lr, grad):
+    return lr * clip_grad(grad, 6)
 
 def hsm(vi, h, W):
     classifiers = zip(vi.path, vi.code)
@@ -28,12 +47,3 @@ def hsm(vi, h, W):
         res += np.log(sig if sig != 0 else 1)
     return res
 
-
-def hsm2(vi, h, tag, V, G):
-    classifiers = zip(vi.path, vi.code)
-    res = 0
-    for step, code in classifiers:
-        t = 1 if code == 1 else -1
-        sig = sigmoid(t * (V[:, step].dot(h) + G[step, tag]))
-        res += np.log(sig if sig != 0 else 1)
-    return res

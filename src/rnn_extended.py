@@ -4,16 +4,21 @@ import rnn
 from rnn_routine import *
 
 class RNNExtended:
-    def __init__(self, word_dim, hidden_layer_size=20, class_size=10000):
+    def __init__(self, word_dim, hidden_layer_size=20, class_size=10000, use_relu=False):
         # Initialize model parameters
         # Word dimensions is the size of our vocubulary
+        print('Enabling ReLU:', use_relu)
         self.N = word_dim
         self.H = hidden_layer_size
         self.class_size = class_size
+        self.use_relu = use_relu
 
         # Randomly initialize weights
         self.U = np.random.randn(self.H, self.N)
-        self.W = np.random.randn(self.H, self.H)
+        if self.use_relu:
+            self.W = np.identity(self.H)
+        else:
+            self.W = np.random.randn(self.H, self.H)
         self.V = np.random.randn(self.class_size, self.H)
         nclass = np.ceil(float(self.N) / self.class_size)
         print("Number of classes: %d" % (nclass))
@@ -24,6 +29,9 @@ class RNNExtended:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
+        self.transfer_func = transfer_sigmoid if not use_relu else transfer_relu
+        self.grad_changes = grad_changes_sigmoid if not use_relu else grad_changes_relu
+
     def export(self, file_path):
         np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.X, self.s, self.deriv_s)
 
@@ -31,10 +39,11 @@ class RNNExtended:
         return self.U[:, word_idx]
 
     def _sentence_log_likelihood(self, Xi):
+        propagation_func = sigmoid if not self.use_relu else relu
         prev_s = np.zeros(self.H)
         log_ll = 0
         for xi, di in zip(Xi, Xi[1:]):
-            h = sigmoid(self.U[:,xi] + self.W.dot(prev_s))
+            h = propagation_func(self.U[:,xi] + self.W.dot(prev_s))
             log_q = self.V.dot(h)
             a = np.max(log_q)
             log_Z = a + np.log(np.sum(np.exp(log_q - a)))
@@ -65,8 +74,7 @@ class RNNExtended:
             self.s[1:] = self.s[:-1]
             self.deriv_s[1:] = self.deriv_s[:-1]
 
-            self.s[0] = sigmoid(self.U[:,xi] + self.W.dot(self.s[1]))
-            self.deriv_s[0] = self.s[0] * (1 - self.s[0])
+            self.s[0], self.deriv_s[0] = self.transfer_func(self.U[:,xi] + self.W.dot(self.s[1]))
 
             err_out = -softmax(self.V.dot(self.s[0]))
             err_out[di % self.class_size] += 1
@@ -74,13 +82,13 @@ class RNNExtended:
             err_c = -softmax(self.X.dot(self.s[0]))
             err_c[class_id] += 1
 
-            self.V += lr * err_out[None].T.dot(self.s[0][None])
-            self.X += lr * err_c[None].T.dot(self.s[0][None])
+            self.V += self.grad_changes(lr, err_out[None].T.dot(self.s[0][None]))
+            self.X += self.grad_changes(lr, err_c[None].T.dot(self.s[0][None]))
 
             err_hidden[0] = (self.V.T.dot(err_out) + self.X.T.dot(err_c)) * self.deriv_s[0]
             for i in range(1, self.ntime - 1):
                 err_hidden[i] = self.W.T.dot(err_hidden[i - 1]) * self.deriv_s[i]
 
-            self.U[:, xi] += lr * err_hidden[0]
-            self.W += lr * self.s[1:].T.dot(err_hidden)
+            self.U[:, xi] += self.grad_changes(lr, err_hidden[0])
+            self.W += self.grad_changes(lr, self.s[1:].T.dot(err_hidden))
 

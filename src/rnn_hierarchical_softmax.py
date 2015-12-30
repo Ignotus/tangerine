@@ -4,16 +4,21 @@ from rnn_routine import *
 
 
 class RNNHSoftmax:
-    def __init__(self, hidden_layer_size, vocab):
+    def __init__(self, hidden_layer_size, vocab, use_relu=False):
         # Initialize model parameters
         # Word dimensions is the size of our vocubulary
+        print('Enabling ReLU:', use_relu)
         self.N = len(vocab)
         self.H = hidden_layer_size
         self.vocab = vocab
+        self.use_relu = use_relu
 
         # Randomly initialize weights
         self.U = np.random.randn(self.H, self.N)
-        self.W = np.random.randn(self.H, self.H)
+        if self.use_relu:
+            self.W = np.identity(self.H)
+        else:
+            self.W = np.random.randn(self.H, self.H)
 
         # In RNNHSoftmax the outer word representation will dissappear
         self.V = np.random.randn(self.N, self.H)
@@ -23,6 +28,9 @@ class RNNHSoftmax:
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
+        self.transfer_func = transfer_sigmoid if not use_relu else transfer_relu
+        self.grad_changes = grad_changes_sigmoid if not use_relu else grad_changes_relu
+
     def export(self, file_path):
         np.savez(file_path, self.N, self.H, self.U, self.W, self.V, self.s, self.deriv_s)
 
@@ -31,10 +39,11 @@ class RNNHSoftmax:
         return self.U[:, word_idx]
 
     def _sentence_log_likelihood(self, Xi):
+        propagation_func = sigmoid if not self.use_relu else relu
         prev_s = np.zeros(self.H)
         log_ll = 0
         for xi, di in zip(Xi, Xi[1:]):
-            h = sigmoid(self.U[:,xi] + self.W.dot(prev_s))
+            h = propagation_func(self.U[:,xi] + self.W.dot(prev_s))
             log_ll += hsm(self.vocab[di], h, self.V.T)
             prev_s = h
         return log_ll
@@ -52,8 +61,7 @@ class RNNHSoftmax:
             self.deriv_s[1:] = self.deriv_s[:-1]
 
             # self.U[:,xi] == self.U.dot(x) if x is one-hot-vector
-            self.s[0] = sigmoid(self.U[:,xi] + self.W.dot(self.s[1]))
-            self.deriv_s[0] = self.s[0] * (1 - self.s[0])
+            self.s[0], self.deriv_s[0] = self.transfer_func(self.U[:,xi] + self.W.dot(self.s[1]))
 
             err_hidden[0] = np.zeros(self.H)
 
@@ -70,5 +78,5 @@ class RNNHSoftmax:
                 err_hidden[i] = self.W.T.dot(err_hidden[i - 1]) * self.deriv_s[i]
 
             # The same trick. Instead of updating a whole matrix by err_hidden[0] dot x
-            self.U[:, xi] += lr * err_hidden[0]
-            self.W += lr * self.s[1:].T.dot(err_hidden)
+            self.U[:, xi] += self.grad_changes(lr, err_hidden[0])
+            self.W += self.grad_changes(lr, self.s[1:].T.dot(err_hidden))

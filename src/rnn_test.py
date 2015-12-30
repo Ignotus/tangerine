@@ -4,15 +4,10 @@ import sys
 import itertools
 import argparse
 
-import spacy.en
-
 
 from rnn import RNN
-from rnn_pos import RNNPOS
 from rnn_extended import RNNExtended
 from rnn_hierarchical_softmax import RNNHSoftmax
-from rnn_hierarchical_softmax_pos import RNNHSoftmaxPOS
-from rnn_hierarchical_softmax_grad_clip import RNNHSoftmaxGradClip
 
 from utils import read_vocabulary, tokenize_files, index2word_to_VocabItems
 from timeit import default_timer as timer
@@ -23,8 +18,8 @@ from timeit import default_timer as timer
 
 
 MIN_WORD_COUNT=5
-MAX_SENTENCES = 8000000000 # use all
-MAX_LIKELIHOOD_SENTENCES = 10000
+MAX_SENTENCES = 1000 # use all
+MAX_LIKELIHOOD_SENTENCES = 1000
 
 def write_vectors(words, rnn, filename):
     with open(filename, 'w') as output_file:
@@ -50,42 +45,25 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     start = timer()
 
     if args.model == 'RNN':
-        rnn = RNN(len(words), args.nhidden)
+        rnn = RNN(len(words), args.nhidden, use_relu=args.relu)
         if (args.load_weights and args.export_outer_weights):
             rnn.load(args.load_weights)
             write_outer_vectors(words, rnn, args.export_outer_weights)
             sys.exit(0)
     elif args.model == 'RNNExtended':
-        rnn = RNNExtended(len(words), args.nhidden, args.class_size)
+        rnn = RNNExtended(len(words), args.nhidden, args.class_size, use_relu=args.relu)
     elif args.model == 'RNNHSoftmax':
         vocItems = index2word_to_VocabItems(words)
-        rnn = RNNHSoftmax(args.nhidden, vocItems)
-    elif args.model == 'RNNHSoftmaxGradClip':
-        vocItems = index2word_to_VocabItems(words)
-        rnn = RNNHSoftmaxGradClip(args.nhidden, vocItems)
-    elif args.model == 'RNNHSoftmaxPOS':
-        vocItems = index2word_to_VocabItems(words)
-        rnn = RNNHSoftmaxPOS(args.nhidden, vocItems)
-    elif args.model == 'RNNPOS':
-        rnn = RNNPOS(len(words), args.nhidden)
-        if (args.load_weights and args.export_outer_weights):
-            rnn.load(args.load_weights)
-            write_outer_vectors(words, rnn, args.export_outer_weights)
-            sys.exit(0)
-
-    if args.model == 'RNNHSoftmaxPOS' or args.model == 'RNNPOS':
-        _NLP = spacy.en.English(parser=False, tagger=True, entity=False)
-    else:
-        _NLP = None
+        rnn = RNNHSoftmax(args.nhidden, vocItems, use_relu=args.relu)
 
     
     num_words = 0
-    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True, nlp=_NLP)
+    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
     lr = 0.005
     print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
     for i in range(args.iter):
-        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True, nlp=_NLP)
+        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             rnn.train(sentence, lr=lr)
             num_words += len(sentence)
@@ -111,11 +89,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax', 'RNNHSoftmaxGradClip', 'RNNHSoftmaxPOS', 'RNNPOS']
+    rnn_mode = ['RNN', 'RNNExtended', 'RNNHSoftmax']
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=1, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=100, help='Hidden layer size', type=int)
-    parser.add_argument('--maxgrad', default=0.01, help='Gradient clipping threshold (is used only with ReLU models)', type=float)
+    parser.add_argument('--relu', dest='relu', help='Enabling ReLU', action='store_true')
+    parser.set_defaults(relu=False)
     parser.add_argument('--class_size', default=1000, help='Class size (is used only with RNNExtended models)', type=int)
     parser.add_argument('--export_file', default=None, help='File to which vectors are written', type=str)
     parser.add_argument('--export_weights', default=None, help='File to which RNN weights are exported', type=str)
