@@ -16,7 +16,7 @@ class RNN:
         self.V = np.random.randn(self.N, self.H)
 
         # Initial state of the hidden layer
-        self.ntime = 3
+        self.ntime = 5
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
@@ -42,18 +42,18 @@ class RNN:
         return np.argmax(softmax(self.V.dot(s_t)))
 
     def _sentence_log_likelihood(self, Xi):
-        hX = np.zeros((len(Xi), self.H))
-        for idx, xi in enumerate(Xi):
-            hX[idx] = self.U[:,xi]
+        prev_s = np.zeros(self.H)
+        log_ll = 0
+        for xi, di in zip(Xi, Xi[1:]):
+            h = sigmoid(self.U[:,xi] + self.W.dot(prev_s))
+            log_q = self.V.dot(h)
+            a = np.max(log_q)
+            log_Z = a + np.log(np.sum(np.exp(log_q - a)))
 
-        h = sigmoid(hX[:-1])# + self.s[1].dot(self.W))
-        log_q = h.dot(self.V.T)
-        a = np.max(log_q, axis=1)
-        log_Z = a + np.log(np.sum(np.exp((log_q.T - a).T), axis=1))
-        #print log_Z
-        return np.sum(np.array([log_q[index, value]
-                                for index, value in enumerate(Xi[1:])])
-                      - log_Z)
+            log_ll += log_q[di] - log_Z
+            prev_s = h
+
+        return log_ll
 
     def log_likelihood(self, Xii):
         """
@@ -61,7 +61,7 @@ class RNN:
         """
         return sum([self._sentence_log_likelihood(Xi) for Xi in Xii])
 
-    def train(self, Xi, lr=0.1):
+    def train(self, Xi, lr=0.005):
         err_hidden = np.empty((self.ntime - 1, self.H))
         for xi, di in zip(Xi, Xi[1:]):
             self.s[1:] = self.s[:-1]
