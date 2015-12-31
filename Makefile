@@ -1,6 +1,6 @@
 all:
-	pushd src
+	cd src
 	python setup.py build_ext --inplace
-	popd
+	cd ..
 clean:
 	rm src/*.c src/*.so
