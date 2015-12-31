@@ -58,7 +58,7 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     num_words = 0
     testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
-    lr = 0.005
+    lr = args.learning_rate
     print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
     for i in range(args.iter):
         sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
@@ -68,13 +68,13 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
         print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.3f" % (lr) + " finished (" + str(num_words) + " words)")
         print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
+        if args.export_file:
+            print("- Writing vectors to file " + args.export_file  + "_" + str(i) + "...")
+            write_vectors(words, rnn, args.export_file + "_" + str(i))
+
         num_words = 0
 
     print("- Took %.2f sec" % (timer() - start))
-
-    if args.export_file:
-        print("- Writing vectors to file " + args.export_file + "...")
-        write_vectors(words, rnn, args.export_file)
 
     if args.export_weights:
         rnn.export(args.export_weights)

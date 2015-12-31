@@ -15,6 +15,8 @@ if __name__ == '__main__':
     parser.add_argument('--model', choices=rnn_mode, default='RNN', help='RNNLM Model mode')
     parser.add_argument('--iter', default=1, help='Number of iterations', type=int)
     parser.add_argument('--nhidden', default=100, help='Hidden layer size', type=int)
+    parser.add_argument('--learning_rate', default=0.005, help='Learning rate', type=float)
+    parser.add_argument('--data', default=1, help='Amount of data in millions', type=int)
     parser.add_argument('--relu', dest='relu', help='Enabling ReLU', action='store_true')
     parser.set_defaults(relu=False)
     parser.add_argument('--class_size', default=1000, help='Class size (is used only with RNNExtended models)', type=int)
@@ -28,5 +30,7 @@ if __name__ == '__main__':
         sys.exit()
 
     #testRNN(args, "data/vocabulary/small.txt", "hyperparameters/training", "hyperparameters/training")
-    testRNN(args, "data/vocabulary/vocab_1M.txt", "data/1M/training", "data/1M/test/")
+    testRNN(args, "data/vocabulary/vocab_%dM.txt" % (args.data),
+            "data/%dM/training" % (args.data),
+            "data/%dM/test/" % (args.data))
 
