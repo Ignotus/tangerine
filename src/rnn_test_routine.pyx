@@ -56,23 +56,33 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     
     num_words = 0
-    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=True)
+    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=False)
     lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
     lr = args.learning_rate
-    print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
+
+    log_ll = rnn.log_likelihood(lik_sentences)
+    print("Log-likelihood: %.2f" % (log_ll))
     for i in range(args.iter):
-        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
+        epoch_start = timer()
+        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=False)
         for sentence in itertools.islice(sentences, MAX_SENTENCES):
             rnn.train(sentence, lr=lr)
             num_words += len(sentence)
 
         print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.3f" % (lr) + " finished (" + str(num_words) + " words)")
-        print("Log-likelihood: %.2f" % (rnn.log_likelihood(lik_sentences)))
+        new_log_ll = rnn.log_likelihood(lik_sentences)
+        print("Log-likelihood: %.2f" % (new_log_ll))
+        if new_log_ll < log_ll:
+            lr /= 2.0
+        log_ll = new_log_ll
+        print("- The Epoch Took %.2f sec" % (timer() - epoch_start))
+
         if args.export_file:
             print("- Writing vectors to file " + args.export_file  + "_" + str(i) + "...")
             write_vectors(words, rnn, args.export_file + "_" + str(i))
 
         num_words = 0
+
 
     print("- Took %.2f sec" % (timer() - start))
 
