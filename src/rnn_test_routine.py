@@ -10,6 +10,9 @@ from rnn_hierarchical_softmax import RNNHSoftmax
 from utils import read_vocabulary, tokenize_files, index2word_to_VocabItems
 from timeit import default_timer as timer
 
+import pickle
+import os.path
+
 # Use preprocessed data from:
 # http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz
 # Contains one sentence tokenized per newline
@@ -17,7 +20,7 @@ from timeit import default_timer as timer
 
 MIN_WORD_COUNT=5
 MAX_SENTENCES = 8000000000 # use all
-MAX_LIKELIHOOD_SENTENCES = 10000
+MAX_LIKELIHOOD_SENTENCES = 5000
 
 def write_vectors(words, rnn, filename):
     with open(filename, 'w') as output_file:
@@ -56,18 +59,34 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
 
     
     num_words = 0
-    testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=False)
-    lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
+    a = not os.path.isfile('testing_sentences.dump')
+    if a:
+        testing_sentences = tokenize_files(dictionary, testing_dir, subsample_frequent=False)
+        lik_sentences = [sentence for sentence in itertools.islice(testing_sentences, MAX_LIKELIHOOD_SENTENCES)]
+        pickle.dump(lik_sentences, open('testing_sentences.dump', 'wb'))
+    else:
+        lik_sentences = pickle.load(open('testing_sentences.dump', 'rb'))
+
+    if a:
+        for i in range(args.iter):
+            print('Dumping sentences for the epoch %d' % (i))
+            sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
+            pickle.dump([sentence for sentence in itertools.islice(sentences, MAX_SENTENCES)],
+                        open('sentences_%d.dump' % (i), 'wb'))
+        sys.exit()
+
     lr = args.learning_rate
 
     log_ll = rnn.log_likelihood(lik_sentences)
     print("Log-likelihood: %.2f" % (log_ll))
     for i in range(args.iter):
         epoch_start = timer()
-        sentences = tokenize_files(dictionary, training_dir, subsample_frequent=False)
-        for sentence in itertools.islice(sentences, MAX_SENTENCES):
+        sentences = pickle.load(open('sentences_%d.dump' % (i), 'rb'))
+        for idx, sentence in enumerate(sentences):
             rnn.train(sentence, lr=lr)
             num_words += len(sentence)
+            if idx % 5000 == 0:
+                print('%d sentences processed. %d secs\r' % (idx, timer() - epoch_start), end='')
 
         print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.3f" % (lr) + " finished (" + str(num_words) + " words)")
         new_log_ll = rnn.log_likelihood(lik_sentences)
