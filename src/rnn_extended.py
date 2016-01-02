@@ -25,7 +25,7 @@ class RNNExtended:
         self.X = np.random.randn(nclass, self.H)
 
         # Initial state of the hidden layer
-        self.ntime = 5
+        self.ntime = 4
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 
