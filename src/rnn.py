@@ -13,12 +13,12 @@ class RNN:
         self.use_relu = use_relu
 
         # Randomly initialize weights
-        self.U = np.random.randn(self.H, self.N)
+        self.U = random((self.H, self.N))
         if self.use_relu:
             self.W = np.identity(self.H)
         else:
-            self.W = np.random.randn(self.H, self.H)
-        self.V = np.random.randn(self.N, self.H)
+            self.W = random((self.H, self.H))
+        self.V = random((self.N, self.H))
 
 
         # Initial state of the hidden layer

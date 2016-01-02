@@ -14,17 +14,17 @@ class RNNHSoftmax:
         self.use_relu = use_relu
 
         # Randomly initialize weights
-        self.U = np.random.randn(self.H, self.N)
+        self.U = random((self.H, self.N))
         if self.use_relu:
             self.W = np.identity(self.H)
         else:
-            self.W = np.random.randn(self.H, self.H)
+            self.W = random((self.H, self.H))
 
         # In RNNHSoftmax the outer word representation will dissappear
-        self.V = np.random.randn(self.N, self.H)
+        self.V = random((self.N, self.H))
 
         # Initial state of the hidden layer
-        self.ntime = 4
+        self.ntime = 5
         self.s = np.zeros((self.ntime, self.H))
         self.deriv_s = np.zeros((self.ntime, self.H))
 

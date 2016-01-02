@@ -47,3 +47,5 @@ def hsm(vi, h, W):
         res += np.log(sig if sig != 0 else 1)
     return res
 
+def random(shape):
+    return 0.1 * np.random.random(shape) - 0.05

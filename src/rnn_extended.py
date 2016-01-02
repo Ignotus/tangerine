@@ -14,15 +14,15 @@ class RNNExtended:
         self.use_relu = use_relu
 
         # Randomly initialize weights
-        self.U = np.random.randn(self.H, self.N)
+        self.U = random((self.H, self.N))
         if self.use_relu:
             self.W = np.identity(self.H)
         else:
-            self.W = np.random.randn(self.H, self.H)
-        self.V = np.random.randn(self.class_size, self.H)
+            self.W = random((self.H, self.H))
+        self.V = random((self.class_size, self.H))
         nclass = np.ceil(float(self.N) / self.class_size)
         print("Number of classes: %d" % (nclass))
-        self.X = np.random.randn(nclass, self.H)
+        self.X = random((nclass, self.H))
 
         # Initial state of the hidden layer
         self.ntime = 4

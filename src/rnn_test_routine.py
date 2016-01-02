@@ -18,7 +18,7 @@ import os.path
 # Contains one sentence tokenized per newline
 
 
-MIN_WORD_COUNT=5
+MIN_WORD_COUNT=15
 MAX_SENTENCES = 8000000000 # use all
 MAX_LIKELIHOOD_SENTENCES = 5000
 
@@ -70,7 +70,7 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
     if a:
         for i in range(args.iter):
             print('Dumping sentences for the epoch %d' % (i))
-            sentences = tokenize_files(dictionary, training_dir, subsample_frequent=True)
+            sentences = tokenize_files(dictionary, training_dir, subsample_frequent=False)
             pickle.dump([sentence for sentence in itertools.islice(sentences, MAX_SENTENCES)],
                         open('sentences_%d.dump' % (i), 'wb'))
         sys.exit()
@@ -86,12 +86,13 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
             rnn.train(sentence, lr=lr)
             num_words += len(sentence)
             if idx % 5000 == 0:
-                print('%d sentences processed. %d secs\r' % (idx, timer() - epoch_start), end='')
+                print('%8d sentences processed. %d secs\r' % (idx, timer() - epoch_start), end='')
 
-        print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.3f" % (lr) + " finished (" + str(num_words) + " words)")
+        print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.8f" % (lr) + " finished (" + str(num_words) + " words)")
         new_log_ll = rnn.log_likelihood(lik_sentences)
         print("Log-likelihood: %.2f" % (new_log_ll))
         if new_log_ll < log_ll:
+            print('Log-likelihood has increased. Decreasing the learning rate..')
             lr /= 2.0
         log_ll = new_log_ll
         print("- The Epoch Took %.2f sec" % (timer() - epoch_start))
