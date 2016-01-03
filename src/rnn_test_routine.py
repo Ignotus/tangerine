@@ -87,6 +87,14 @@ def testRNN(args, vocabulary_file, training_dir, testing_dir):
             num_words += len(sentence)
             if idx % 5000 == 0:
                 print('%8d sentences processed. %d secs\r' % (idx, timer() - epoch_start), end='')
+            # Checks a log-likelihood more frequent if use ReLU
+            if args.relu and idx % 10000 == 0:
+                new_log_ll = rnn.log_likelihood(lik_sentences)
+                print("- Log-likelihood: %0.2f" % (new_log_ll))
+                if new_log_ll < log_ll:
+                    print('Log-likelihood has increased. Decreasing the learning rate..')
+                    lr /= 2.0
+                log_ll = new_log_ll
 
         print("Iteration " + str(i + 1) + "/" + str(args.iter) + " lr = %.8f" % (lr) + " finished (" + str(num_words) + " words)")
         new_log_ll = rnn.log_likelihood(lik_sentences)
