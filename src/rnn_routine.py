@@ -52,4 +52,4 @@ def hsm(vi, h, W):
 
 # http://t-satoshi.blogspot.nl/2015/06/implementing-recurrent-neural-net-using.html
 def random(shape):
-    return np.random.normal(loc=0.0, scale=0.001, shape)
+    return np.random.normal(loc=0.0, scale=0.001, size=shape)
