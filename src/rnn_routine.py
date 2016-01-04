@@ -35,8 +35,11 @@ def grad_changes_sigmoid(lr, grad):
 # With gradient clipping
 # "We use clipping with a cut-off threshold of 6 on the norm of the gradients"
 # http://arxiv.org/pdf/1211.5063.pdf
+
+# But here they say 1 is better
+# http://t-satoshi.blogspot.nl/2015/06/implementing-recurrent-neural-net-using.html
 def grad_changes_relu(lr, grad):
-    return lr * clip_grad(grad, 6)
+    return lr * clip_grad(grad, 1)
 
 def hsm(vi, h, W):
     classifiers = zip(vi.path, vi.code)
@@ -47,5 +50,6 @@ def hsm(vi, h, W):
         res += np.log(sig if sig != 0 else 1)
     return res
 
+# http://t-satoshi.blogspot.nl/2015/06/implementing-recurrent-neural-net-using.html
 def random(shape):
-    return 0.1 * np.random.random(shape) - 0.05
+    return np.random.normal(loc=0.0, scale=0.001, shape)
