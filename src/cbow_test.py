@@ -17,8 +17,8 @@ vocab_file = '../data/vocabulary/vocab_10M.txt'
 #train_dir = '../data/training/small_1M'
 #vocab_file = '../data/vocabulary/vocab_1M.txt'
 
-train_dir = '../data/hyperparameters/test/'
-vocab_file = '../data/hyperparameters/vocab.txt'
+#train_dir = '../data/hyperparameters/test/'
+#vocab_file = '../data/hyperparameters/vocab.txt'
 
 
 #tuning_train_dir = '../data/cbow/small/'
@@ -27,7 +27,7 @@ tuning_test_dir = '../data/hyperparameters/test/'
 # tuning_all_dir= '../data/hyperparameters/all/'
 tuning_vocab_file = '../data/hyperparameters/vocab.txt'
 
-word_vectors_file='../word_vectors/cbow_100d_10C_delta_hsm_10M_vectors_test.txt'
+word_vectors_file='../word_vectors/cbow_100d_10C_delta_ns_10M_vectors.txt'
 
 
 
@@ -36,21 +36,22 @@ C = 10  # window size
 n = 100  # the number of components in the hidden layer
 
 file_lines=files_len(train_dir)
-print(file_lines)
 
-ALPHA=0.3 # the learning rate. !Set it to None to run the parameters tuning
+ALPHA=0.09 # the learning rate. !Set it to None to run the parameters tuning
 
 EPOCHS = 1
 MAX_VOCAB_SIZE = 500000000000 # use all
 MAX_SENTENCES = 5000000000000  # use all
 MAX_LL_SENTENCES = int(np.round(file_lines*1)) # use 1% out of all lines
 LL_EVERY_SENTENCES = int(np.round(file_lines/5))
-DEBUG=1 # change to 0 to switch off, to 1 to switch on print messages
-SM_OPTIMIZATION= CBOWSMOpt.hierarchical_softmax
-LR_OPTIMIZATION= CBOWLROpt.ada_grad
+DEBUG=0 # change to 0 to switch off, to 1 to switch on print messages
+SM_OPTIMIZATION= CBOWSMOpt.negative_sampling
+LR_OPTIMIZATION= CBOWLROpt.ada_delta
 
 
-
+# AdaDelta
+ADELTA_NOISE      = 1e-6
+ADELTA_DECAY_RATE = 0.95
 
 ###### CREATION OF A VOCAB. FILE (OPTIONAL) ######
 #voc = constructVocabulary(tuning_all_dir)
@@ -86,21 +87,21 @@ def tuneLR():
     print('best learning rate is: ' + str(bestLR) + ' with LL: ' + str(bestLL))
     print(LLs)
     print(alphas)
-    # if(DEBUG==1):
-    #     width=0.35
-    #     ind = np.arange(len(alphas))
-    #     fig = plt.figure()
-    #     plt.bar(ind, LLs,width,
-    #              alpha=0.9,
-    #              color='b',
-    #              label='Learning rates')
-    #     plt.xlabel('learning rates')
-    #     plt.ylabel('Log-likelihood')
-    #     plt.xticks(ind+width/2,alphas)
-    #     ax = gca()
-    #     ax.margins(0.05, None)
-    #     plt.savefig("../plots/cbow/LR.pdf")
-    #     plt.show()
+    if(DEBUG==1):
+        width=0.35
+        ind = np.arange(len(alphas))
+        fig = plt.figure()
+        plt.bar(ind, LLs,width,
+                 alpha=0.9,
+                 color='b',
+                 label='Learning rates')
+        plt.xlabel('learning rates')
+        plt.ylabel('Log-likelihood')
+        plt.xticks(ind+width/2,alphas)
+        ax = gca()
+        ax.margins(0.05, None)
+        plt.savefig("../plots/cbow/LR.pdf")
+        #plt.show()
     return alpha
 
 
@@ -114,11 +115,14 @@ def run():
 
     start = timer()
     alpha = ALPHA if ALPHA else tuneLR()
-    print("- Took %.2f sec to tune hyper-params" % (timer() - start))
-    num_samples= np.round(math.log(len(index_to_word),2))
-    print("number of samples: "+str(num_samples))
+    if ALPHA==None: print("- Took %.2f sec to tune hyper-params" % (timer() - start))
+
+    num_samples=0
+    if(SM_OPTIMIZATION==CBOWSMOpt.negative_sampling):
+        num_samples= np.round(math.log(len(index_to_word),2))
+        print("number of samples: "+str(num_samples))
     start = timer()
-    myCbow = CBOW(index_to_word, C, n, alpha,SM_OPTIMIZATION,LR_OPTIMIZATION,num_negative_samples=num_samples)
+    myCbow = CBOW(index_to_word, C, n, alpha,SM_OPTIMIZATION,LR_OPTIMIZATION,num_negative_samples=num_samples,ada_delta_noise=ADELTA_NOISE,ada_delta_decay_rate=ADELTA_DECAY_RATE)
     num_words = 0
 
     ######## TRAINING ########
@@ -156,6 +160,7 @@ def run():
         plt.show()
     else:
      ######## WORD VECTORS EXTRACTION ########
+        print("writing vectors to "+word_vectors_file)
         wordVecs=[]
         for i, iw in enumerate(index_to_word):
             wordVecs.append([iw[0],myCbow.get_word_input_rep(i)])

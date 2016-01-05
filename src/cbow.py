@@ -41,9 +41,6 @@ class CBOW:
     unigram = None  # unigram distribution
     K = None  # number of negative samples
 
-    DR = None  # adaDelta decay noise
-    DN = None  # adaDelta noise
-
     cache_Z = None  # a cached constant that can use used to speed-up softmax
 
 
@@ -212,7 +209,6 @@ class CBOW:
     # layer: 1: input layer, 2: output layer
     def ___get_and_update__LR(self, id=0, layer=1, der=None):
         if not (layer in [1, 2]): raise Exception("Invalid layer number")
-
         if (self.lrOpt == CBOWLROpt.ada_delta):
             if (layer == 1):
                 lr=self.iAlpha.get_and_update_LR(id,der)
